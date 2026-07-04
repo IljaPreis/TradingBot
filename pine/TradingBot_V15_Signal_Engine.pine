@@ -1,0 +1,25 @@
+//@version=6
+indicator("TradingBot V15 Signal Engine", overlay=true)
+ema20=ta.ema(close,20)
+ema50=ta.ema(close,50)
+ema200=ta.ema(close,200)
+vwapVal=ta.vwap(close)
+atrVal=ta.atr(14)
+volSpike=volume>ta.sma(volume,20)*1.2
+plot(ema20,"EMA20",color=color.orange)
+plot(ema50,"EMA50",color=color.blue)
+plot(ema200,"EMA200",color=color.purple)
+plot(vwapVal,"VWAP",color=color.aqua)
+trendLong=ema20>ema50 and ema50>ema200 and close>ema200
+trendShort=ema20<ema50 and ema50<ema200 and close<ema200
+longSignal=barstate.isconfirmed and close>ema20 and low<=ema20 and trendLong and close>vwapVal and volSpike
+shortSignal=barstate.isconfirmed and close<ema20 and high>=ema20 and trendShort and close<vwapVal and volSpike
+h=hour(time,"Europe/Berlin")
+sess=h>=1 and h<8?"Asia":h>=8 and h<14?"London":h>=14 and h<22?"NewYork":"Off"
+sl=math.max(ta.atr(14)*1.2, syminfo.type=="forex"?0.0020:50.0)
+if longSignal
+    alert('{"market":"'+syminfo.ticker+'","side":"long","price":'+str.tostring(close)+',"trigger":"ema20_reclaim","timeframe":"'+timeframe.period+'","trend_state":"long_trend","volume_state":"spike","vwap_state":"above_vwap","structure_state":"bos","session":"'+sess+'","sl":'+str.tostring(close-sl)+',"tp1":'+str.tostring(close+sl*1.5)+',"tp2":'+str.tostring(close+sl*3)+'}',alert.freq_once_per_bar_close)
+if shortSignal
+    alert('{"market":"'+syminfo.ticker+'","side":"short","price":'+str.tostring(close)+',"trigger":"ema20_breakdown","timeframe":"'+timeframe.period+'","trend_state":"short_trend","volume_state":"spike","vwap_state":"below_vwap","structure_state":"bos","session":"'+sess+'","sl":'+str.tostring(close+sl)+',"tp1":'+str.tostring(close-sl*1.5)+',"tp2":'+str.tostring(close-sl*3)+'}',alert.freq_once_per_bar_close)
+plotshape(longSignal,style=shape.labelup,text="LONG",color=color.green,textcolor=color.white)
+plotshape(shortSignal,style=shape.labeldown,text="SHORT",color=color.red,textcolor=color.white)

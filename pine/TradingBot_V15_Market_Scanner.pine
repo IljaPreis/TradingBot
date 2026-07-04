@@ -1,0 +1,11 @@
+//@version=6
+indicator("TradingBot V15 Market Scanner", overlay=false)
+ema20=ta.ema(close,20), ema50=ta.ema(close,50), ema200=ta.ema(close,200), vwapVal=ta.vwap(close)
+trend=ema20>ema50 and ema50>ema200 and close>ema200?"long_trend":ema20<ema50 and ema50<ema200 and close<ema200?"short_trend":"neutral"
+vwapState=close>vwapVal?"above_vwap":"below_vwap"
+volState=volume>ta.sma(volume,20)*1.2?"spike":"normal"
+h=hour(time,"Europe/Berlin")
+sess=h>=1 and h<8?"Asia":h>=8 and h<14?"London":h>=14 and h<22?"NewYork":"Off"
+if barstate.isconfirmed
+    alert('{"market":"'+syminfo.ticker+'","price":'+str.tostring(close)+',"timeframe":"'+timeframe.period+'","trend_state":"'+trend+'","vwap_state":"'+vwapState+'","volume_state":"'+volState+'","session":"'+sess+'"}',alert.freq_once_per_bar_close)
+plot(close)
