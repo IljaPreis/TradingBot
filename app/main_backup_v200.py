@@ -38,7 +38,7 @@ TRADES={}
 LAST_SENT={}
 CALENDAR=[]
 
-app=FastAPI(title="TradingBot V300 Institutional AI Terminal")
+app=FastAPI(title="TradingBot V200 Institutional AI Master")
 
 class Signal(BaseModel):
     market:str
@@ -307,9 +307,9 @@ async def startup():
     if CAL_ON: asyncio.create_task(calendar_loop())
 
 @app.get("/health")
-async def health(): return {"status":"online","name":"TradingBot V300 Institutional AI Terminal","markets":len(WATCHLIST)}
+async def health(): return {"status":"online","name":"TradingBot V200 Institutional AI Master","markets":len(WATCHLIST)}
 @app.get("/test-telegram")
-async def test_telegram(): await tg("✅ TradingBot V300 Institutional AI Terminal ist online."); return {"telegram":"sent"}
+async def test_telegram(): await tg("✅ TradingBot V200 Institutional AI Master ist online."); return {"telegram":"sent"}
 @app.get("/context")
 async def context_get(): return CTX
 @app.post("/context")
@@ -391,7 +391,7 @@ async def webhook(req:Request):
     reason_text="\n".join("• "+x for x in reasons); macro_text=", ".join(ma["reasons"]) or "neutral"
     priority="🔥 A+ TOP SETUP" if score100>=92 else "🟢 A SETUP" if score100>=85 else "🟡 B SETUP"
     block_note="⚠️ Kalender-Block aktiv: "+", ".join([b.get("title","Event") for b in blocks]) if blocks else "Kein Kalender-Block"
-    msg=f"""🚨 <b>TradingBot V300 Institutional AI Terminal</b>
+    msg=f"""🚨 <b>TradingBot V200 Institutional AI Master</b>
 <b>{priority}</b>
 
 <b>Markt:</b> {a.market.upper()}
@@ -435,7 +435,7 @@ async def dashboard():
     news_html="".join(f"<li>{h[0]} | {h[2]} {h[3]} | {h[1]}</li>" for h in get_headlines(10)) or "<li>Keine News</li>"
     cal_html="".join(f"<li>{e.get('time','-')} | {e.get('impact')} | {e.get('currency')} | {e.get('title')}</li>" for e in CALENDAR[:10]) or "<li>Keine Events</li>"
     rows="".join(f"<tr><td>{m}</td><td>{STATE.get(m,{}).get('bias','Flat')}</td><td>{STATE.get(m,{}).get('score100','-')}</td><td>{STATE.get(m,{}).get('confidence','')}</td><td>{STATE.get(m,{}).get('trigger','-')}</td><td>{STATE.get(m,{}).get('price','-')}</td><td>{STATE.get(m,{}).get('status','Wartet')}</td><td>{STATE.get(m,{}).get('updated','-')}</td></tr>" for m in WATCHLIST)
-    return f"""<html><head><title>TradingBot V300</title><style>body{{font-family:Arial;background:#0f172a;color:#e5e7eb;padding:20px}}.card{{background:#111827;padding:18px;border-radius:12px;margin-bottom:20px}}table{{width:100%;border-collapse:collapse}}td,th{{border-bottom:1px solid #334155;padding:8px;text-align:left}}th{{color:#93c5fd}}b{{color:#fff}}</style></head><body><h1>TradingBot V300 Institutional AI Terminal</h1><div class='card'><b>Status:</b> Online<br><b>Märkte:</b> {len(WATCHLIST)}</div><div class='card'><h2>Top-Setups / Priorität</h2><ul>{top_html}</ul></div><div class='card'><h2>Aktive Trades</h2><ul>{trades_html}</ul></div><div class='card'><h2>Macro Intelligence</h2><b>Regime:</b> {ma['regime']}<br><b>Risk:</b> {ma['risk_score']}%<br><b>USD:</b> {ma['usd_score']}%<br><b>Bonds:</b> {ma['bonds_score']}%<br><b>Öl:</b> {ma['oil_score']}%<br><b>Gründe:</b> {', '.join(ma['reasons'])}</div><div class='card'><h2>Wirtschaftskalender</h2><ul>{cal_html}</ul></div><div class='card'><h2>Headlines</h2><ul>{news_html}</ul></div><div class='card'><h2>Watchlist Live-State</h2><table><tr><th>Markt</th><th>Bias</th><th>Score</th><th>Conf</th><th>Trigger</th><th>Preis</th><th>Status</th><th>Update</th></tr>{rows}</table></div></body></html>"""
+    return f"""<html><head><title>TradingBot V200</title><style>body{{font-family:Arial;background:#0f172a;color:#e5e7eb;padding:20px}}.card{{background:#111827;padding:18px;border-radius:12px;margin-bottom:20px}}table{{width:100%;border-collapse:collapse}}td,th{{border-bottom:1px solid #334155;padding:8px;text-align:left}}th{{color:#93c5fd}}b{{color:#fff}}</style></head><body><h1>TradingBot V200 Institutional AI Master</h1><div class='card'><b>Status:</b> Online<br><b>Märkte:</b> {len(WATCHLIST)}</div><div class='card'><h2>Top-Setups / Priorität</h2><ul>{top_html}</ul></div><div class='card'><h2>Aktive Trades</h2><ul>{trades_html}</ul></div><div class='card'><h2>Macro Intelligence</h2><b>Regime:</b> {ma['regime']}<br><b>Risk:</b> {ma['risk_score']}%<br><b>USD:</b> {ma['usd_score']}%<br><b>Bonds:</b> {ma['bonds_score']}%<br><b>Öl:</b> {ma['oil_score']}%<br><b>Gründe:</b> {', '.join(ma['reasons'])}</div><div class='card'><h2>Wirtschaftskalender</h2><ul>{cal_html}</ul></div><div class='card'><h2>Headlines</h2><ul>{news_html}</ul></div><div class='card'><h2>Watchlist Live-State</h2><table><tr><th>Markt</th><th>Bias</th><th>Score</th><th>Conf</th><th>Trigger</th><th>Preis</th><th>Status</th><th>Update</th></tr>{rows}</table></div></body></html>"""
 
 
 # ===== V31-V40 MASTER EXTENSIONS =====
@@ -443,7 +443,7 @@ async def dashboard():
 @app.get("/v40")
 async def v40_info():
     return {
-        "version": "TradingBot V300 Institutional AI Terminal",
+        "version": "TradingBot V200 Institutional AI Master",
         "features": [
             "V31 AI Score 0-100",
             "V32 Strength Ranking",
@@ -470,7 +470,7 @@ async def best_shorts():
 async def status():
     return {
         "status": "online",
-        "version": "TradingBot V300 Institutional AI Terminal",
+        "version": "TradingBot V200 Institutional AI Master",
         "markets": len(WATCHLIST),
         "active_trades": len(TRADES),
         "top": top_rankings(5),
@@ -496,7 +496,7 @@ async def telegram_command(data: dict):
     elif cmd == "/macro":
         msg = "🌍 Macro Score\\n" + str(macro_score())
     elif cmd == "/status":
-        msg = f"✅ TradingBot V300 Institutional AI Terminal online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
+        msg = f"✅ TradingBot V200 Institutional AI Master online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
     else:
         msg = "Befehle: /top /long /short /macro /status"
 
@@ -522,7 +522,7 @@ def ai_grade(score):
 @app.get("/v50")
 async def v50_info():
     return {
-        "version": "TradingBot V300 Institutional AI Terminal",
+        "version": "TradingBot V200 Institutional AI Master",
         "features": [
             "AI Confidence Engine",
             "Liquidity Sweep Bewertung",
@@ -597,7 +597,7 @@ async def telegram_v50(data: dict):
     elif cmd == "/calendar":
         msg = "📅 V50 CALENDAR\\n" + "\\n".join([str(x) for x in CALENDAR[:8]])
     elif cmd == "/status":
-        msg = f"✅ TradingBot V300 Institutional AI Terminal online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
+        msg = f"✅ TradingBot V200 Institutional AI Master online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
     else:
         msg = "Befehle: /best /long /short /risk /calendar /status"
 
@@ -625,7 +625,7 @@ def liquidity_grade(market):
 @app.get("/v60")
 async def v60_info():
     return {
-        "version": "TradingBot V300 Institutional AI Terminal",
+        "version": "TradingBot V200 Institutional AI Master",
         "features": [
             "Volume Profile Vorbereitung",
             "POC/VAH/VAL Zonen",
@@ -702,7 +702,7 @@ async def telegram_v60(data: dict):
     elif cmd == "/vwap":
         msg = "📊 VWAP/EMA Confluence\\n" + str(await vwap_confluence())
     elif cmd == "/status":
-        msg = f"✅ TradingBot V300 Institutional AI Terminal online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
+        msg = f"✅ TradingBot V200 Institutional AI Master online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
     else:
         msg = "Befehle: /inst /zones /vwap /status"
 
@@ -725,7 +725,7 @@ def trade_summary():
 @app.get("/v70")
 async def v70_info():
     return {
-        "version": "TradingBot V300 Institutional AI Terminal",
+        "version": "TradingBot V200 Institutional AI Master",
         "features": [
             "Break-even Manager",
             "Trailing Stop Hinweise",
@@ -781,7 +781,7 @@ async def telegram_v70(data: dict):
     elif cmd == "/risk":
         msg = "⚠️ V70 RISK EXPOSURE\\n" + str(await risk_exposure())
     elif cmd == "/status":
-        msg = f"✅ TradingBot V300 Institutional AI Terminal online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
+        msg = f"✅ TradingBot V200 Institutional AI Master online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
     else:
         msg = "Befehle: /trades /risk /status"
 
@@ -806,7 +806,7 @@ def setup_stats():
 @app.get("/v80")
 async def v80_info():
     return {
-        "version": "TradingBot V300 Institutional AI Terminal",
+        "version": "TradingBot V200 Institutional AI Master",
         "features": [
             "Setup Statistik",
             "Winrate Vorbereitung",
@@ -882,7 +882,7 @@ async def telegram_v80(data: dict):
     elif cmd == "/triggers":
         msg = "📊 TRIGGER RANKING\\n" + str(await trigger_ranking())
     elif cmd == "/status":
-        msg = f"✅ TradingBot V300 Institutional AI Terminal online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
+        msg = f"✅ TradingBot V200 Institutional AI Master online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
     else:
         msg = "Befehle: /learning /triggers /status"
 
@@ -923,7 +923,7 @@ def portfolio_stats():
 @app.get("/v90")
 async def v90_info():
     return {
-        "version": "TradingBot V300 Institutional AI Terminal",
+        "version": "TradingBot V200 Institutional AI Master",
         "features": [
             "Portfolio Stats",
             "Winrate Center",
@@ -978,7 +978,7 @@ async def telegram_v90(data: dict):
     elif cmd == "/closed":
         msg = "✅ CLOSED STATS\\n" + str(await closed_stats())
     elif cmd == "/status":
-        msg = f"✅ TradingBot V300 Institutional AI Terminal online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
+        msg = f"✅ TradingBot V200 Institutional AI Master online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
     else:
         msg = "Befehle: /portfolio /winrate /open /closed /status"
 
@@ -1038,7 +1038,7 @@ def professional_decision(market: str):
 @app.get("/v100")
 async def v100_info():
     return {
-        "version": "TradingBot V300 Institutional AI Terminal",
+        "version": "TradingBot V200 Institutional AI Master",
         "features": [
             "Professional Decision Engine",
             "High Probability Filter",
@@ -1115,7 +1115,7 @@ async def telegram_v100(data: dict):
     elif cmd == "/filter":
         msg = "🚦 V100 TRADE FILTER\\n" + str(await trade_filter())
     elif cmd == "/status":
-        msg = f"✅ TradingBot V300 Institutional AI Terminal online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
+        msg = f"✅ TradingBot V200 Institutional AI Master online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
     else:
         msg = "Befehle: /pro /a+ /filter /status"
 
@@ -1141,7 +1141,7 @@ def trade_manager_status(market: str, price):
 @app.get("/v110")
 async def v110_info():
     return {
-        "version": "TradingBot V300 Institutional AI Terminal",
+        "version": "TradingBot V200 Institutional AI Master",
         "features": [
             "TP1 Break-Even Alert",
             "TP2 Teilgewinn Alert",
@@ -1188,7 +1188,7 @@ async def telegram_v110(data: dict):
     elif cmd == "/open":
         msg = "📌 OPEN TRADES\\n" + str([t for t in TRADES.values() if t.get("status") == "OPEN"])
     elif cmd == "/status":
-        msg = f"✅ TradingBot V300 Institutional AI Terminal online | Trades: {len(TRADES)}"
+        msg = f"✅ TradingBot V200 Institutional AI Master online | Trades: {len(TRADES)}"
     else:
         msg = "Befehle: /manager /open /status"
 
@@ -1246,7 +1246,7 @@ def smart_money_score(data: dict):
 @app.get("/v120")
 async def v120_info():
     return {
-        "version": "TradingBot V300 Institutional AI Terminal",
+        "version": "TradingBot V200 Institutional AI Master",
         "features": [
             "Liquidity Sweeps",
             "Buy Side / Sell Side Liquidity",
@@ -1320,7 +1320,7 @@ async def telegram_v120(data: dict):
             [f"{x['market']} {x['score']}/100 {x['grade']}" for x in rows]
         )
     elif cmd == "/status":
-        msg = f"✅ TradingBot V300 Institutional AI Terminal online | SMC Märkte: {len(SMART_MONEY)}"
+        msg = f"✅ TradingBot V200 Institutional AI Master online | SMC Märkte: {len(SMART_MONEY)}"
     else:
         msg = "Befehle: /smc /status"
 
@@ -1351,19 +1351,6 @@ def institutional_master_score(market: str):
     regime = REGIME_AI.get(market, {})
 
     base = float(st.get("score100", 0) or 0)
-    if base <= 0:
-        # V210 Fix: Wenn noch kein TradingView-Basissignal im Speicher ist,
-        # wird aus den institutionellen Modulen ein synthetischer Base-Score gebildet.
-        module_values = [
-            float(smc.get("smc_score", 0) or 0),
-            float(vp.get("vp_score", 0) or 0),
-            float(delta.get("delta_score", 0) or 0),
-            float(corr.get("corr_score", 0) or 0),
-            float(mtf.get("mtf_score", 0) or 0),
-            float(regime.get("regime_score", 0) or 0),
-        ]
-        active_values = [x for x in module_values if x > 0]
-        base = round(sum(active_values) / len(active_values), 1) if active_values else 0
     smc_score = float(smc.get("smc_score", 0) or 0)
     vp_score = float(vp.get("vp_score", 0) or 0)
     delta_score = float(delta.get("delta_score", 0) or 0)
@@ -1407,7 +1394,7 @@ def institutional_master_score(market: str):
 @app.get("/v200")
 async def v200_info():
     return {
-        "version": "TradingBot V300 Institutional AI Terminal",
+        "version": "TradingBot V200 Institutional AI Master",
         "modules": [
             "V130 Volume Profile Engine",
             "V140 CVD / Delta Engine",
@@ -1598,7 +1585,7 @@ async def master_ranking():
 @app.get("/v200-dashboard")
 async def v200_dashboard():
     return {
-        "version": "TradingBot V300 Institutional AI Terminal",
+        "version": "TradingBot V200 Institutional AI Master",
         "top": (await master_ranking())["ranking"][:10],
         "trades": TRADES,
         "smart_money": SMART_MONEY,
@@ -1622,7 +1609,7 @@ async def telegram_v200(data: dict):
     elif cmd == "/dashboard":
         msg = "📊 V200 DASHBOARD\\n" + str(await v200_dashboard())
     elif cmd == "/status":
-        msg = f"✅ TradingBot V300 Institutional AI Terminal online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
+        msg = f"✅ TradingBot V200 Institutional AI Master online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
     else:
         msg = "Befehle: /master /dashboard /status"
 
@@ -1630,142 +1617,3 @@ async def telegram_v200(data: dict):
     return {"sent": msg}
 
 # ===== END V130-V200 INSTITUTIONAL AI MASTER =====
-
-
-# ===== V210-V300 INSTITUTIONAL AI TERMINAL =====
-
-def terminal_grade(score):
-    if score >= 97:
-        return "A+++ Elite Institutional"
-    if score >= 94:
-        return "A++ Institutional"
-    if score >= 90:
-        return "A+ High Probability"
-    if score >= 85:
-        return "A Setup"
-    if score >= 78:
-        return "B Watchlist"
-    return "WAIT"
-
-def terminal_decision(market: str):
-    d = institutional_master_score(market)
-    score = float(d.get("final_score", 0) or 0)
-    bias = d.get("bias", "Flat")
-    blockers = []
-
-    if bias == "Flat":
-        blockers.append("Kein klarer Bias")
-    if score < 85:
-        blockers.append("Score unter A-Level")
-
-    decision = "WAIT"
-    if score >= 85 and not blockers:
-        decision = "TRADE_ALLOWED"
-    if score >= 94 and not blockers:
-        decision = "A++_HIGH_PROBABILITY"
-
-    d["terminal_grade"] = terminal_grade(score)
-    d["terminal_decision"] = decision
-    d["blockers"] = blockers
-    return d
-
-@app.get("/v300")
-async def v300_info():
-    return {
-        "version": "TradingBot V300 Institutional AI Terminal",
-        "modules": [
-            "V210 Base Score Auto Fix",
-            "V220 News AI Vorbereitung",
-            "V230 Portfolio Risk Engine",
-            "V240 Market Rotation Engine",
-            "V250 Terminal Dashboard",
-            "V260 A++ Filter",
-            "V270 Long/Short Rotation",
-            "V280 Trade Quality Engine",
-            "V290 Risk Blocker",
-            "V300 Institutional AI Terminal"
-        ]
-    }
-
-@app.get("/terminal/{market}")
-async def terminal_market(market: str):
-    return terminal_decision(market)
-
-@app.get("/terminal-ranking")
-async def terminal_ranking():
-    rows = []
-    for m in WATCHLIST:
-        rows.append(terminal_decision(m))
-    rows.sort(key=lambda x: float(x.get("final_score", 0)), reverse=True)
-    return {"version": "V300 Institutional AI Terminal", "ranking": rows[:30]}
-
-@app.get("/a-elite")
-async def a_elite():
-    rows = (await terminal_ranking())["ranking"]
-    return {"elite": [x for x in rows if float(x.get("final_score", 0)) >= 90][:15]}
-
-@app.get("/rotation")
-async def market_rotation():
-    rows = (await terminal_ranking())["ranking"]
-    longs = [x for x in rows if x.get("bias") == "LONG"]
-    shorts = [x for x in rows if x.get("bias") == "SHORT"]
-    return {
-        "top_longs": longs[:10],
-        "top_shorts": shorts[:10],
-        "best_market": rows[0] if rows else None
-    }
-
-@app.get("/risk-terminal")
-async def risk_terminal():
-    rows = (await terminal_ranking())["ranking"]
-    active = [x for x in rows if x.get("terminal_decision") != "WAIT"]
-    return {
-        "active_setups": len(active),
-        "risk_note": "Nur A+ oder besser handeln. Bei News/Kalender-Block Setup ignorieren.",
-        "active": active[:10],
-        "portfolio": portfolio_stats() if "portfolio_stats" in globals() else {}
-    }
-
-@app.get("/terminal-dashboard")
-async def terminal_dashboard():
-    return {
-        "version": "TradingBot V300 Institutional AI Terminal",
-        "elite": (await a_elite())["elite"],
-        "rotation": await market_rotation(),
-        "risk": await risk_terminal(),
-        "trades": TRADES,
-        "smart_money": SMART_MONEY,
-        "volume_profile": VOLUME_PROFILE,
-        "delta": DELTA_ENGINE,
-        "correlation": CORRELATION_MATRIX,
-        "mtf": MTF_AI,
-        "regime": REGIME_AI
-    }
-
-@app.post("/telegram-v300")
-async def telegram_v300(data: dict):
-    cmd = str(data.get("text", "")).lower().strip()
-
-    if cmd in ["/terminal", "/v300"]:
-        rows = (await terminal_ranking())["ranking"][:10]
-        msg = "🏦 V300 TERMINAL\\n" + "\\n".join(
-            [f"{i+1}. {x['market']} {x['bias']} {x['final_score']}/100 {x['terminal_grade']} {x['terminal_decision']}" for i, x in enumerate(rows)]
-        )
-    elif cmd in ["/elite", "/a++"]:
-        rows = (await a_elite())["elite"]
-        msg = "🔥 V300 ELITE SETUPS\\n" + "\\n".join(
-            [f"{x['market']} {x['bias']} {x['final_score']}/100 {x['terminal_grade']}" for x in rows[:10]]
-        )
-    elif cmd == "/rotation":
-        msg = "🔄 V300 ROTATION\\n" + str(await market_rotation())
-    elif cmd == "/risk":
-        msg = "⚠️ V300 RISK\\n" + str(await risk_terminal())
-    elif cmd == "/status":
-        msg = f"✅ TradingBot V300 Institutional AI Terminal online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
-    else:
-        msg = "Befehle: /terminal /elite /rotation /risk /status"
-
-    await tg(msg)
-    return {"sent": msg}
-
-# ===== END V210-V300 INSTITUTIONAL AI TERMINAL =====
