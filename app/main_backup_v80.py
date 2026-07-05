@@ -38,7 +38,7 @@ TRADES={}
 LAST_SENT={}
 CALENDAR=[]
 
-app=FastAPI(title="TradingBot V90 Portfolio Center")
+app=FastAPI(title="TradingBot V80 Learning Engine")
 
 class Signal(BaseModel):
     market:str
@@ -307,9 +307,9 @@ async def startup():
     if CAL_ON: asyncio.create_task(calendar_loop())
 
 @app.get("/health")
-async def health(): return {"status":"online","name":"TradingBot V90 Portfolio Center","markets":len(WATCHLIST)}
+async def health(): return {"status":"online","name":"TradingBot V80 Learning Engine","markets":len(WATCHLIST)}
 @app.get("/test-telegram")
-async def test_telegram(): await tg("✅ TradingBot V90 Portfolio Center ist online."); return {"telegram":"sent"}
+async def test_telegram(): await tg("✅ TradingBot V80 Learning Engine ist online."); return {"telegram":"sent"}
 @app.get("/context")
 async def context_get(): return CTX
 @app.post("/context")
@@ -391,7 +391,7 @@ async def webhook(req:Request):
     reason_text="\n".join("• "+x for x in reasons); macro_text=", ".join(ma["reasons"]) or "neutral"
     priority="🔥 A+ TOP SETUP" if score100>=92 else "🟢 A SETUP" if score100>=85 else "🟡 B SETUP"
     block_note="⚠️ Kalender-Block aktiv: "+", ".join([b.get("title","Event") for b in blocks]) if blocks else "Kein Kalender-Block"
-    msg=f"""🚨 <b>TradingBot V90 Portfolio Center</b>
+    msg=f"""🚨 <b>TradingBot V80 Learning Engine</b>
 <b>{priority}</b>
 
 <b>Markt:</b> {a.market.upper()}
@@ -435,7 +435,7 @@ async def dashboard():
     news_html="".join(f"<li>{h[0]} | {h[2]} {h[3]} | {h[1]}</li>" for h in get_headlines(10)) or "<li>Keine News</li>"
     cal_html="".join(f"<li>{e.get('time','-')} | {e.get('impact')} | {e.get('currency')} | {e.get('title')}</li>" for e in CALENDAR[:10]) or "<li>Keine Events</li>"
     rows="".join(f"<tr><td>{m}</td><td>{STATE.get(m,{}).get('bias','Flat')}</td><td>{STATE.get(m,{}).get('score100','-')}</td><td>{STATE.get(m,{}).get('confidence','')}</td><td>{STATE.get(m,{}).get('trigger','-')}</td><td>{STATE.get(m,{}).get('price','-')}</td><td>{STATE.get(m,{}).get('status','Wartet')}</td><td>{STATE.get(m,{}).get('updated','-')}</td></tr>" for m in WATCHLIST)
-    return f"""<html><head><title>TradingBot V90</title><style>body{{font-family:Arial;background:#0f172a;color:#e5e7eb;padding:20px}}.card{{background:#111827;padding:18px;border-radius:12px;margin-bottom:20px}}table{{width:100%;border-collapse:collapse}}td,th{{border-bottom:1px solid #334155;padding:8px;text-align:left}}th{{color:#93c5fd}}b{{color:#fff}}</style></head><body><h1>TradingBot V90 Portfolio Center</h1><div class='card'><b>Status:</b> Online<br><b>Märkte:</b> {len(WATCHLIST)}</div><div class='card'><h2>Top-Setups / Priorität</h2><ul>{top_html}</ul></div><div class='card'><h2>Aktive Trades</h2><ul>{trades_html}</ul></div><div class='card'><h2>Macro Intelligence</h2><b>Regime:</b> {ma['regime']}<br><b>Risk:</b> {ma['risk_score']}%<br><b>USD:</b> {ma['usd_score']}%<br><b>Bonds:</b> {ma['bonds_score']}%<br><b>Öl:</b> {ma['oil_score']}%<br><b>Gründe:</b> {', '.join(ma['reasons'])}</div><div class='card'><h2>Wirtschaftskalender</h2><ul>{cal_html}</ul></div><div class='card'><h2>Headlines</h2><ul>{news_html}</ul></div><div class='card'><h2>Watchlist Live-State</h2><table><tr><th>Markt</th><th>Bias</th><th>Score</th><th>Conf</th><th>Trigger</th><th>Preis</th><th>Status</th><th>Update</th></tr>{rows}</table></div></body></html>"""
+    return f"""<html><head><title>TradingBot V80</title><style>body{{font-family:Arial;background:#0f172a;color:#e5e7eb;padding:20px}}.card{{background:#111827;padding:18px;border-radius:12px;margin-bottom:20px}}table{{width:100%;border-collapse:collapse}}td,th{{border-bottom:1px solid #334155;padding:8px;text-align:left}}th{{color:#93c5fd}}b{{color:#fff}}</style></head><body><h1>TradingBot V80 Learning Engine</h1><div class='card'><b>Status:</b> Online<br><b>Märkte:</b> {len(WATCHLIST)}</div><div class='card'><h2>Top-Setups / Priorität</h2><ul>{top_html}</ul></div><div class='card'><h2>Aktive Trades</h2><ul>{trades_html}</ul></div><div class='card'><h2>Macro Intelligence</h2><b>Regime:</b> {ma['regime']}<br><b>Risk:</b> {ma['risk_score']}%<br><b>USD:</b> {ma['usd_score']}%<br><b>Bonds:</b> {ma['bonds_score']}%<br><b>Öl:</b> {ma['oil_score']}%<br><b>Gründe:</b> {', '.join(ma['reasons'])}</div><div class='card'><h2>Wirtschaftskalender</h2><ul>{cal_html}</ul></div><div class='card'><h2>Headlines</h2><ul>{news_html}</ul></div><div class='card'><h2>Watchlist Live-State</h2><table><tr><th>Markt</th><th>Bias</th><th>Score</th><th>Conf</th><th>Trigger</th><th>Preis</th><th>Status</th><th>Update</th></tr>{rows}</table></div></body></html>"""
 
 
 # ===== V31-V40 MASTER EXTENSIONS =====
@@ -443,7 +443,7 @@ async def dashboard():
 @app.get("/v40")
 async def v40_info():
     return {
-        "version": "TradingBot V90 Portfolio Center",
+        "version": "TradingBot V80 Learning Engine",
         "features": [
             "V31 AI Score 0-100",
             "V32 Strength Ranking",
@@ -470,7 +470,7 @@ async def best_shorts():
 async def status():
     return {
         "status": "online",
-        "version": "TradingBot V90 Portfolio Center",
+        "version": "TradingBot V80 Learning Engine",
         "markets": len(WATCHLIST),
         "active_trades": len(TRADES),
         "top": top_rankings(5),
@@ -496,7 +496,7 @@ async def telegram_command(data: dict):
     elif cmd == "/macro":
         msg = "🌍 Macro Score\\n" + str(macro_score())
     elif cmd == "/status":
-        msg = f"✅ TradingBot V90 Portfolio Center online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
+        msg = f"✅ TradingBot V80 Learning Engine online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
     else:
         msg = "Befehle: /top /long /short /macro /status"
 
@@ -522,7 +522,7 @@ def ai_grade(score):
 @app.get("/v50")
 async def v50_info():
     return {
-        "version": "TradingBot V90 Portfolio Center",
+        "version": "TradingBot V80 Learning Engine",
         "features": [
             "AI Confidence Engine",
             "Liquidity Sweep Bewertung",
@@ -597,7 +597,7 @@ async def telegram_v50(data: dict):
     elif cmd == "/calendar":
         msg = "📅 V50 CALENDAR\\n" + "\\n".join([str(x) for x in CALENDAR[:8]])
     elif cmd == "/status":
-        msg = f"✅ TradingBot V90 Portfolio Center online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
+        msg = f"✅ TradingBot V80 Learning Engine online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
     else:
         msg = "Befehle: /best /long /short /risk /calendar /status"
 
@@ -625,7 +625,7 @@ def liquidity_grade(market):
 @app.get("/v60")
 async def v60_info():
     return {
-        "version": "TradingBot V90 Portfolio Center",
+        "version": "TradingBot V80 Learning Engine",
         "features": [
             "Volume Profile Vorbereitung",
             "POC/VAH/VAL Zonen",
@@ -702,7 +702,7 @@ async def telegram_v60(data: dict):
     elif cmd == "/vwap":
         msg = "📊 VWAP/EMA Confluence\\n" + str(await vwap_confluence())
     elif cmd == "/status":
-        msg = f"✅ TradingBot V90 Portfolio Center online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
+        msg = f"✅ TradingBot V80 Learning Engine online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
     else:
         msg = "Befehle: /inst /zones /vwap /status"
 
@@ -725,7 +725,7 @@ def trade_summary():
 @app.get("/v70")
 async def v70_info():
     return {
-        "version": "TradingBot V90 Portfolio Center",
+        "version": "TradingBot V80 Learning Engine",
         "features": [
             "Break-even Manager",
             "Trailing Stop Hinweise",
@@ -781,7 +781,7 @@ async def telegram_v70(data: dict):
     elif cmd == "/risk":
         msg = "⚠️ V70 RISK EXPOSURE\\n" + str(await risk_exposure())
     elif cmd == "/status":
-        msg = f"✅ TradingBot V90 Portfolio Center online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
+        msg = f"✅ TradingBot V80 Learning Engine online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
     else:
         msg = "Befehle: /trades /risk /status"
 
@@ -806,7 +806,7 @@ def setup_stats():
 @app.get("/v80")
 async def v80_info():
     return {
-        "version": "TradingBot V90 Portfolio Center",
+        "version": "TradingBot V80 Learning Engine",
         "features": [
             "Setup Statistik",
             "Winrate Vorbereitung",
@@ -882,7 +882,7 @@ async def telegram_v80(data: dict):
     elif cmd == "/triggers":
         msg = "📊 TRIGGER RANKING\\n" + str(await trigger_ranking())
     elif cmd == "/status":
-        msg = f"✅ TradingBot V90 Portfolio Center online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
+        msg = f"✅ TradingBot V80 Learning Engine online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
     else:
         msg = "Befehle: /learning /triggers /status"
 
@@ -890,99 +890,3 @@ async def telegram_v80(data: dict):
     return {"sent": msg}
 
 # ===== END V71-V80 LEARNING ENGINE EXTENSIONS =====
-
-
-# ===== V81-V90 PORTFOLIO PERFORMANCE EXTENSIONS =====
-
-def portfolio_stats():
-    rows = setup_stats()
-    total = 0
-    wins = 0
-    losses = 0
-
-    for market, side, trigger, result, count in rows:
-        total += count
-        if result in ["tp1", "tp2", "tp3", "win"]:
-            wins += count
-        if result in ["sl", "loss", "SL_HIT"]:
-            losses += count
-
-    closed = wins + losses
-    winrate = round((wins / closed * 100), 1) if closed > 0 else 0
-
-    return {
-        "total_signals": total,
-        "closed_trades": closed,
-        "wins": wins,
-        "losses": losses,
-        "winrate": winrate,
-        "open_trades": len([t for t in TRADES.values() if t.get("status") == "OPEN"]),
-        "active_trades": TRADES
-    }
-
-@app.get("/v90")
-async def v90_info():
-    return {
-        "version": "TradingBot V90 Portfolio Center",
-        "features": [
-            "Portfolio Stats",
-            "Winrate Center",
-            "Open Trade Overview",
-            "Closed Trade Analyse",
-            "Performance Dashboard",
-            "Risk Exposure",
-            "Best Trigger Ranking",
-            "Trade Result Tracking",
-            "Equity Curve Vorbereitung",
-            "V90 Portfolio Center"
-        ]
-    }
-
-@app.get("/portfolio")
-async def portfolio():
-    return portfolio_stats()
-
-@app.get("/winrate")
-async def winrate():
-    return {
-        "portfolio": portfolio_stats(),
-        "trigger_ranking": (await trigger_ranking()).get("trigger_ranking", [])[:20]
-    }
-
-@app.get("/open-trades")
-async def open_trades():
-    return {
-        "open_trades": [t for t in TRADES.values() if t.get("status") == "OPEN"]
-    }
-
-@app.get("/closed-stats")
-async def closed_stats():
-    ps = portfolio_stats()
-    return {
-        "closed": ps["closed_trades"],
-        "wins": ps["wins"],
-        "losses": ps["losses"],
-        "winrate": ps["winrate"]
-    }
-
-@app.post("/telegram-v90")
-async def telegram_v90(data: dict):
-    cmd = str(data.get("text", "")).lower().strip()
-
-    if cmd == "/portfolio":
-        msg = "💼 V90 PORTFOLIO\\n" + str(portfolio_stats())
-    elif cmd == "/winrate":
-        msg = "📈 V90 WINRATE\\n" + str(await winrate())
-    elif cmd == "/open":
-        msg = "📌 OPEN TRADES\\n" + str(await open_trades())
-    elif cmd == "/closed":
-        msg = "✅ CLOSED STATS\\n" + str(await closed_stats())
-    elif cmd == "/status":
-        msg = f"✅ TradingBot V90 Portfolio Center online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
-    else:
-        msg = "Befehle: /portfolio /winrate /open /closed /status"
-
-    await tg(msg)
-    return {"sent": msg}
-
-# ===== END V81-V90 PORTFOLIO PERFORMANCE EXTENSIONS =====
