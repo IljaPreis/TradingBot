@@ -38,7 +38,7 @@ TRADES={}
 LAST_SENT={}
 CALENDAR=[]
 
-app=FastAPI(title="TradingBot V80 Learning Engine")
+app=FastAPI(title="TradingBot V70 Smart Trade Manager")
 
 class Signal(BaseModel):
     market:str
@@ -307,9 +307,9 @@ async def startup():
     if CAL_ON: asyncio.create_task(calendar_loop())
 
 @app.get("/health")
-async def health(): return {"status":"online","name":"TradingBot V80 Learning Engine","markets":len(WATCHLIST)}
+async def health(): return {"status":"online","name":"TradingBot V70 Smart Trade Manager","markets":len(WATCHLIST)}
 @app.get("/test-telegram")
-async def test_telegram(): await tg("✅ TradingBot V80 Learning Engine ist online."); return {"telegram":"sent"}
+async def test_telegram(): await tg("✅ TradingBot V70 Smart Trade Manager ist online."); return {"telegram":"sent"}
 @app.get("/context")
 async def context_get(): return CTX
 @app.post("/context")
@@ -391,7 +391,7 @@ async def webhook(req:Request):
     reason_text="\n".join("• "+x for x in reasons); macro_text=", ".join(ma["reasons"]) or "neutral"
     priority="🔥 A+ TOP SETUP" if score100>=92 else "🟢 A SETUP" if score100>=85 else "🟡 B SETUP"
     block_note="⚠️ Kalender-Block aktiv: "+", ".join([b.get("title","Event") for b in blocks]) if blocks else "Kein Kalender-Block"
-    msg=f"""🚨 <b>TradingBot V80 Learning Engine</b>
+    msg=f"""🚨 <b>TradingBot V70 Smart Trade Manager</b>
 <b>{priority}</b>
 
 <b>Markt:</b> {a.market.upper()}
@@ -435,7 +435,7 @@ async def dashboard():
     news_html="".join(f"<li>{h[0]} | {h[2]} {h[3]} | {h[1]}</li>" for h in get_headlines(10)) or "<li>Keine News</li>"
     cal_html="".join(f"<li>{e.get('time','-')} | {e.get('impact')} | {e.get('currency')} | {e.get('title')}</li>" for e in CALENDAR[:10]) or "<li>Keine Events</li>"
     rows="".join(f"<tr><td>{m}</td><td>{STATE.get(m,{}).get('bias','Flat')}</td><td>{STATE.get(m,{}).get('score100','-')}</td><td>{STATE.get(m,{}).get('confidence','')}</td><td>{STATE.get(m,{}).get('trigger','-')}</td><td>{STATE.get(m,{}).get('price','-')}</td><td>{STATE.get(m,{}).get('status','Wartet')}</td><td>{STATE.get(m,{}).get('updated','-')}</td></tr>" for m in WATCHLIST)
-    return f"""<html><head><title>TradingBot V80</title><style>body{{font-family:Arial;background:#0f172a;color:#e5e7eb;padding:20px}}.card{{background:#111827;padding:18px;border-radius:12px;margin-bottom:20px}}table{{width:100%;border-collapse:collapse}}td,th{{border-bottom:1px solid #334155;padding:8px;text-align:left}}th{{color:#93c5fd}}b{{color:#fff}}</style></head><body><h1>TradingBot V80 Learning Engine</h1><div class='card'><b>Status:</b> Online<br><b>Märkte:</b> {len(WATCHLIST)}</div><div class='card'><h2>Top-Setups / Priorität</h2><ul>{top_html}</ul></div><div class='card'><h2>Aktive Trades</h2><ul>{trades_html}</ul></div><div class='card'><h2>Macro Intelligence</h2><b>Regime:</b> {ma['regime']}<br><b>Risk:</b> {ma['risk_score']}%<br><b>USD:</b> {ma['usd_score']}%<br><b>Bonds:</b> {ma['bonds_score']}%<br><b>Öl:</b> {ma['oil_score']}%<br><b>Gründe:</b> {', '.join(ma['reasons'])}</div><div class='card'><h2>Wirtschaftskalender</h2><ul>{cal_html}</ul></div><div class='card'><h2>Headlines</h2><ul>{news_html}</ul></div><div class='card'><h2>Watchlist Live-State</h2><table><tr><th>Markt</th><th>Bias</th><th>Score</th><th>Conf</th><th>Trigger</th><th>Preis</th><th>Status</th><th>Update</th></tr>{rows}</table></div></body></html>"""
+    return f"""<html><head><title>TradingBot V70</title><style>body{{font-family:Arial;background:#0f172a;color:#e5e7eb;padding:20px}}.card{{background:#111827;padding:18px;border-radius:12px;margin-bottom:20px}}table{{width:100%;border-collapse:collapse}}td,th{{border-bottom:1px solid #334155;padding:8px;text-align:left}}th{{color:#93c5fd}}b{{color:#fff}}</style></head><body><h1>TradingBot V70 Smart Trade Manager</h1><div class='card'><b>Status:</b> Online<br><b>Märkte:</b> {len(WATCHLIST)}</div><div class='card'><h2>Top-Setups / Priorität</h2><ul>{top_html}</ul></div><div class='card'><h2>Aktive Trades</h2><ul>{trades_html}</ul></div><div class='card'><h2>Macro Intelligence</h2><b>Regime:</b> {ma['regime']}<br><b>Risk:</b> {ma['risk_score']}%<br><b>USD:</b> {ma['usd_score']}%<br><b>Bonds:</b> {ma['bonds_score']}%<br><b>Öl:</b> {ma['oil_score']}%<br><b>Gründe:</b> {', '.join(ma['reasons'])}</div><div class='card'><h2>Wirtschaftskalender</h2><ul>{cal_html}</ul></div><div class='card'><h2>Headlines</h2><ul>{news_html}</ul></div><div class='card'><h2>Watchlist Live-State</h2><table><tr><th>Markt</th><th>Bias</th><th>Score</th><th>Conf</th><th>Trigger</th><th>Preis</th><th>Status</th><th>Update</th></tr>{rows}</table></div></body></html>"""
 
 
 # ===== V31-V40 MASTER EXTENSIONS =====
@@ -443,7 +443,7 @@ async def dashboard():
 @app.get("/v40")
 async def v40_info():
     return {
-        "version": "TradingBot V80 Learning Engine",
+        "version": "TradingBot V70 Smart Trade Manager",
         "features": [
             "V31 AI Score 0-100",
             "V32 Strength Ranking",
@@ -470,7 +470,7 @@ async def best_shorts():
 async def status():
     return {
         "status": "online",
-        "version": "TradingBot V80 Learning Engine",
+        "version": "TradingBot V70 Smart Trade Manager",
         "markets": len(WATCHLIST),
         "active_trades": len(TRADES),
         "top": top_rankings(5),
@@ -496,7 +496,7 @@ async def telegram_command(data: dict):
     elif cmd == "/macro":
         msg = "🌍 Macro Score\\n" + str(macro_score())
     elif cmd == "/status":
-        msg = f"✅ TradingBot V80 Learning Engine online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
+        msg = f"✅ TradingBot V70 Smart Trade Manager online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
     else:
         msg = "Befehle: /top /long /short /macro /status"
 
@@ -522,7 +522,7 @@ def ai_grade(score):
 @app.get("/v50")
 async def v50_info():
     return {
-        "version": "TradingBot V80 Learning Engine",
+        "version": "TradingBot V70 Smart Trade Manager",
         "features": [
             "AI Confidence Engine",
             "Liquidity Sweep Bewertung",
@@ -597,7 +597,7 @@ async def telegram_v50(data: dict):
     elif cmd == "/calendar":
         msg = "📅 V50 CALENDAR\\n" + "\\n".join([str(x) for x in CALENDAR[:8]])
     elif cmd == "/status":
-        msg = f"✅ TradingBot V80 Learning Engine online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
+        msg = f"✅ TradingBot V70 Smart Trade Manager online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
     else:
         msg = "Befehle: /best /long /short /risk /calendar /status"
 
@@ -625,7 +625,7 @@ def liquidity_grade(market):
 @app.get("/v60")
 async def v60_info():
     return {
-        "version": "TradingBot V80 Learning Engine",
+        "version": "TradingBot V70 Smart Trade Manager",
         "features": [
             "Volume Profile Vorbereitung",
             "POC/VAH/VAL Zonen",
@@ -702,7 +702,7 @@ async def telegram_v60(data: dict):
     elif cmd == "/vwap":
         msg = "📊 VWAP/EMA Confluence\\n" + str(await vwap_confluence())
     elif cmd == "/status":
-        msg = f"✅ TradingBot V80 Learning Engine online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
+        msg = f"✅ TradingBot V70 Smart Trade Manager online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
     else:
         msg = "Befehle: /inst /zones /vwap /status"
 
@@ -725,7 +725,7 @@ def trade_summary():
 @app.get("/v70")
 async def v70_info():
     return {
-        "version": "TradingBot V80 Learning Engine",
+        "version": "TradingBot V70 Smart Trade Manager",
         "features": [
             "Break-even Manager",
             "Trailing Stop Hinweise",
@@ -781,7 +781,7 @@ async def telegram_v70(data: dict):
     elif cmd == "/risk":
         msg = "⚠️ V70 RISK EXPOSURE\\n" + str(await risk_exposure())
     elif cmd == "/status":
-        msg = f"✅ TradingBot V80 Learning Engine online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
+        msg = f"✅ TradingBot V70 Smart Trade Manager online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
     else:
         msg = "Befehle: /trades /risk /status"
 
@@ -789,104 +789,3 @@ async def telegram_v70(data: dict):
     return {"sent": msg}
 
 # ===== END V61-V70 SMART TRADE MANAGER EXTENSIONS =====
-
-
-# ===== V71-V80 LEARNING ENGINE EXTENSIONS =====
-
-def setup_stats():
-    try:
-        with conn() as c:
-            rows = c.execute(
-                "SELECT market, side, trigger, result, COUNT(*) FROM signals GROUP BY market, side, trigger, result"
-            ).fetchall()
-    except Exception:
-        rows = []
-    return rows
-
-@app.get("/v80")
-async def v80_info():
-    return {
-        "version": "TradingBot V80 Learning Engine",
-        "features": [
-            "Setup Statistik",
-            "Winrate Vorbereitung",
-            "Trigger Ranking",
-            "Market Memory",
-            "Learning Score",
-            "Performance API",
-            "Best/Worst Setup Analyse",
-            "AI Feedback Loop",
-            "Trade Journal Vorbereitung",
-            "V80 Learning Dashboard"
-        ]
-    }
-
-@app.get("/learning")
-async def learning():
-    rows = setup_stats()
-    return {
-        "version": "V80 Learning Engine",
-        "raw_stats": rows,
-        "note": "Je mehr Signale/Trade-Ergebnisse gespeichert werden, desto besser wird die Bewertung."
-    }
-
-@app.get("/trigger-ranking")
-async def trigger_ranking():
-    stats = {}
-    for market, side, trigger, result, count in setup_stats():
-        key = f"{market}-{side}-{trigger}"
-        stats.setdefault(key, {"total": 0, "wins": 0, "losses": 0})
-        stats[key]["total"] += count
-        if result in ["tp1", "tp2", "tp3", "win"]:
-            stats[key]["wins"] += count
-        if result in ["sl", "loss", "SL_HIT"]:
-            stats[key]["losses"] += count
-
-    out = []
-    for k, v in stats.items():
-        total = max(1, v["total"])
-        winrate = round(v["wins"] / total * 100, 1)
-        out.append({"setup": k, "total": v["total"], "wins": v["wins"], "losses": v["losses"], "winrate": winrate})
-
-    out.sort(key=lambda x: (x["winrate"], x["total"]), reverse=True)
-    return {"trigger_ranking": out[:50]}
-
-@app.post("/trade-result")
-async def trade_result(data: dict):
-    market = str(data.get("market", "")).upper()
-    result = str(data.get("result", "open"))
-    if not market:
-        return {"accepted": False, "error": "market missing"}
-
-    try:
-        with conn() as c:
-            c.execute(
-                "UPDATE signals SET result=? WHERE market=? AND result='open'",
-                (result, market)
-            )
-            c.commit()
-    except Exception as e:
-        return {"accepted": False, "error": str(e)}
-
-    if market in TRADES:
-        TRADES[market]["status"] = result.upper()
-
-    return {"accepted": True, "market": market, "result": result}
-
-@app.post("/telegram-v80")
-async def telegram_v80(data: dict):
-    cmd = str(data.get("text", "")).lower().strip()
-
-    if cmd == "/learning":
-        msg = "🧠 V80 LEARNING\\n" + str(await learning())
-    elif cmd == "/triggers":
-        msg = "📊 TRIGGER RANKING\\n" + str(await trigger_ranking())
-    elif cmd == "/status":
-        msg = f"✅ TradingBot V80 Learning Engine online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
-    else:
-        msg = "Befehle: /learning /triggers /status"
-
-    await tg(msg)
-    return {"sent": msg}
-
-# ===== END V71-V80 LEARNING ENGINE EXTENSIONS =====
