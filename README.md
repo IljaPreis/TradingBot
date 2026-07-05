@@ -1,24 +1,9 @@
-# TradingBot V15 Master
+# TradingBot V30 Master
 
-V11-V15 zusammen:
-- Scanner Engine
-- Setup Engine
-- Trade Manager
+V26-V30 zusammen:
+- Live Wirtschaftskalender-Engine
+- Headline/News Engine
+- Long/Short Ranking
+- TradingView Webhook Parser
+- Trade Manager mit TP1/TP2/TP3, Break-even Hinweis und Exit-Warnung
 - Dashboard Pro
-- Performance Brain
-- Macro Intelligence
-- News Impact
-- Top Setups
-- Pine Signal / Scanner / Macro
-
-Installation im bestehenden Git-Ordner:
-
-```bash
-cd /opt/tradingbot_v9
-cp .env /tmp/tradingbot.env
-docker compose down
-find . -mindepth 1 ! -name ".git" ! -name ".env" -exec rm -rf {} +
-unzip /opt/tradingbot_v15_master.zip
-cp /tmp/tradingbot.env .env
-docker compose up -d --build
-```

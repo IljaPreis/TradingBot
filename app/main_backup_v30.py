@@ -38,7 +38,7 @@ TRADES={}
 LAST_SENT={}
 CALENDAR=[]
 
-app=FastAPI(title="TradingBot V40 Master")
+app=FastAPI(title="TradingBot V30 Master")
 
 class Signal(BaseModel):
     market:str
@@ -307,9 +307,9 @@ async def startup():
     if CAL_ON: asyncio.create_task(calendar_loop())
 
 @app.get("/health")
-async def health(): return {"status":"online","name":"TradingBot V40 Master","markets":len(WATCHLIST)}
+async def health(): return {"status":"online","name":"TradingBot V30 Master","markets":len(WATCHLIST)}
 @app.get("/test-telegram")
-async def test_telegram(): await tg("✅ TradingBot V40 Master ist online."); return {"telegram":"sent"}
+async def test_telegram(): await tg("✅ TradingBot V30 Master ist online."); return {"telegram":"sent"}
 @app.get("/context")
 async def context_get(): return CTX
 @app.post("/context")
@@ -391,7 +391,7 @@ async def webhook(req:Request):
     reason_text="\n".join("• "+x for x in reasons); macro_text=", ".join(ma["reasons"]) or "neutral"
     priority="🔥 A+ TOP SETUP" if score100>=92 else "🟢 A SETUP" if score100>=85 else "🟡 B SETUP"
     block_note="⚠️ Kalender-Block aktiv: "+", ".join([b.get("title","Event") for b in blocks]) if blocks else "Kein Kalender-Block"
-    msg=f"""🚨 <b>TradingBot V40 Master</b>
+    msg=f"""🚨 <b>TradingBot V30 Master</b>
 <b>{priority}</b>
 
 <b>Markt:</b> {a.market.upper()}
@@ -435,72 +435,4 @@ async def dashboard():
     news_html="".join(f"<li>{h[0]} | {h[2]} {h[3]} | {h[1]}</li>" for h in get_headlines(10)) or "<li>Keine News</li>"
     cal_html="".join(f"<li>{e.get('time','-')} | {e.get('impact')} | {e.get('currency')} | {e.get('title')}</li>" for e in CALENDAR[:10]) or "<li>Keine Events</li>"
     rows="".join(f"<tr><td>{m}</td><td>{STATE.get(m,{}).get('bias','Flat')}</td><td>{STATE.get(m,{}).get('score100','-')}</td><td>{STATE.get(m,{}).get('confidence','')}</td><td>{STATE.get(m,{}).get('trigger','-')}</td><td>{STATE.get(m,{}).get('price','-')}</td><td>{STATE.get(m,{}).get('status','Wartet')}</td><td>{STATE.get(m,{}).get('updated','-')}</td></tr>" for m in WATCHLIST)
-    return f"""<html><head><title>TradingBot V40</title><style>body{{font-family:Arial;background:#0f172a;color:#e5e7eb;padding:20px}}.card{{background:#111827;padding:18px;border-radius:12px;margin-bottom:20px}}table{{width:100%;border-collapse:collapse}}td,th{{border-bottom:1px solid #334155;padding:8px;text-align:left}}th{{color:#93c5fd}}b{{color:#fff}}</style></head><body><h1>TradingBot V40 Master</h1><div class='card'><b>Status:</b> Online<br><b>Märkte:</b> {len(WATCHLIST)}</div><div class='card'><h2>Top-Setups / Priorität</h2><ul>{top_html}</ul></div><div class='card'><h2>Aktive Trades</h2><ul>{trades_html}</ul></div><div class='card'><h2>Macro Intelligence</h2><b>Regime:</b> {ma['regime']}<br><b>Risk:</b> {ma['risk_score']}%<br><b>USD:</b> {ma['usd_score']}%<br><b>Bonds:</b> {ma['bonds_score']}%<br><b>Öl:</b> {ma['oil_score']}%<br><b>Gründe:</b> {', '.join(ma['reasons'])}</div><div class='card'><h2>Wirtschaftskalender</h2><ul>{cal_html}</ul></div><div class='card'><h2>Headlines</h2><ul>{news_html}</ul></div><div class='card'><h2>Watchlist Live-State</h2><table><tr><th>Markt</th><th>Bias</th><th>Score</th><th>Conf</th><th>Trigger</th><th>Preis</th><th>Status</th><th>Update</th></tr>{rows}</table></div></body></html>"""
-
-
-# ===== V31-V40 MASTER EXTENSIONS =====
-
-@app.get("/v40")
-async def v40_info():
-    return {
-        "version": "TradingBot V40 Master",
-        "features": [
-            "V31 AI Score 0-100",
-            "V32 Strength Ranking",
-            "V33 Correlation Engine",
-            "V34 ATR SL/TP",
-            "V35 Top Long Short Ranking",
-            "V36 TradingView Webhook Pro",
-            "V37 Trade Manager",
-            "V38 Telegram Commands",
-            "V39 Dashboard Auto Refresh",
-            "V40 Master Scanner"
-        ]
-    }
-
-@app.get("/long")
-async def best_longs():
-    return {"long": [x for x in top_rankings(50) if x.get("bias") == "LONG"][:10]}
-
-@app.get("/short")
-async def best_shorts():
-    return {"short": [x for x in top_rankings(50) if x.get("bias") == "SHORT"][:10]}
-
-@app.get("/status")
-async def status():
-    return {
-        "status": "online",
-        "version": "TradingBot V40 Master",
-        "markets": len(WATCHLIST),
-        "active_trades": len(TRADES),
-        "top": top_rankings(5),
-        "macro": macro_score()
-    }
-
-@app.post("/telegram")
-async def telegram_command(data: dict):
-    cmd = str(data.get("text", "")).lower().strip()
-
-    if cmd == "/top":
-        msg = "🏆 TOP Setups\\n" + "\\n".join(
-            [f"{i+1}. {x['market']} {x.get('bias')} {x.get('score100')}/100" for i, x in enumerate(top_rankings(10))]
-        )
-    elif cmd == "/long":
-        msg = "🟢 Beste Longs\\n" + "\\n".join(
-            [f"{x['market']} {x.get('score100')}/100" for x in top_rankings(50) if x.get("bias") == "LONG"][:10]
-        )
-    elif cmd == "/short":
-        msg = "🔴 Beste Shorts\\n" + "\\n".join(
-            [f"{x['market']} {x.get('score100')}/100" for x in top_rankings(50) if x.get("bias") == "SHORT"][:10]
-        )
-    elif cmd == "/macro":
-        msg = "🌍 Macro Score\\n" + str(macro_score())
-    elif cmd == "/status":
-        msg = f"✅ TradingBot V40 Master online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
-    else:
-        msg = "Befehle: /top /long /short /macro /status"
-
-    await tg(msg)
-    return {"sent": msg}
-
-# ===== END V31-V40 EXTENSIONS =====
+    return f"""<html><head><title>TradingBot V30</title><style>body{{font-family:Arial;background:#0f172a;color:#e5e7eb;padding:20px}}.card{{background:#111827;padding:18px;border-radius:12px;margin-bottom:20px}}table{{width:100%;border-collapse:collapse}}td,th{{border-bottom:1px solid #334155;padding:8px;text-align:left}}th{{color:#93c5fd}}b{{color:#fff}}</style></head><body><h1>TradingBot V30 Master</h1><div class='card'><b>Status:</b> Online<br><b>Märkte:</b> {len(WATCHLIST)}</div><div class='card'><h2>Top-Setups / Priorität</h2><ul>{top_html}</ul></div><div class='card'><h2>Aktive Trades</h2><ul>{trades_html}</ul></div><div class='card'><h2>Macro Intelligence</h2><b>Regime:</b> {ma['regime']}<br><b>Risk:</b> {ma['risk_score']}%<br><b>USD:</b> {ma['usd_score']}%<br><b>Bonds:</b> {ma['bonds_score']}%<br><b>Öl:</b> {ma['oil_score']}%<br><b>Gründe:</b> {', '.join(ma['reasons'])}</div><div class='card'><h2>Wirtschaftskalender</h2><ul>{cal_html}</ul></div><div class='card'><h2>Headlines</h2><ul>{news_html}</ul></div><div class='card'><h2>Watchlist Live-State</h2><table><tr><th>Markt</th><th>Bias</th><th>Score</th><th>Conf</th><th>Trigger</th><th>Preis</th><th>Status</th><th>Update</th></tr>{rows}</table></div></body></html>"""

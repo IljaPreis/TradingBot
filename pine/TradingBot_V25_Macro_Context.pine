@@ -1,0 +1,9 @@
+//@version=6
+indicator("TradingBot V25 Macro Context", overlay=false)
+sourceType=input.string("DXY","Quelle",options=["DXY","US10Y","OIL","RISK","VIX"])
+fast=ta.ema(close,20)
+slow=ta.ema(close,50)
+bias=sourceType=="DXY"?(fast>slow?"bullish_usd":fast<slow?"bearish_usd":"neutral"):sourceType=="US10Y"?(fast>slow?"yields_up":fast<slow?"yields_down":"neutral"):sourceType=="OIL"?(fast>slow?"bullish_oil":fast<slow?"bearish_oil":"neutral"):sourceType=="RISK"?(fast>slow?"risk_on":fast<slow?"risk_off":"neutral"):(fast>slow?"vix_up":fast<slow?"vix_down":"neutral")
+if barstate.isconfirmed and bias!=bias[1]
+    alert('{"source":"'+sourceType+'","bias":"'+bias+'","value":'+str.tostring(close)+',"note":"V25 Macro '+sourceType+' '+bias+'"}',alert.freq_once_per_bar_close)
+plot(fast), plot(slow)
