@@ -1,0 +1,83 @@
+//@version=6
+indicator("TradingBot V1000 Signal Engine", overlay=true, max_labels_count=500)
+
+// ===== Inputs =====
+webhookNote = input.string("TradingBot V1000", "Webhook Note")
+emaFastLen = input.int(20, "EMA Fast")
+emaMidLen  = input.int(50, "EMA Mid")
+emaSlowLen = input.int(200, "EMA Slow")
+atrLen     = input.int(14, "ATR")
+volLen     = input.int(20, "Volume SMA")
+volMult    = input.float(1.5, "Volume Spike Multiplier")
+useVWAP    = input.bool(true, "Use VWAP")
+showLabels = input.bool(true, "Show Signals")
+
+// ===== Core =====
+ema20  = ta.ema(close, emaFastLen)
+ema50  = ta.ema(close, emaMidLen)
+ema200 = ta.ema(close, emaSlowLen)
+vwapV  = ta.vwap(close)
+atr    = ta.atr(atrLen)
+volSma = ta.sma(volume, volLen)
+
+longTrend  = ema20 > ema50 and ema50 > ema200
+shortTrend = ema20 < ema50 and ema50 < ema200
+volSpike   = volume > volSma * volMult
+aboveVWAP  = close > vwapV
+belowVWAP  = close < vwapV
+
+swingHigh = ta.pivothigh(high, 3, 3)
+swingLow  = ta.pivotlow(low, 3, 3)
+
+var float lastHigh = na
+var float lastLow  = na
+if not na(swingHigh)
+    lastHigh := swingHigh
+if not na(swingLow)
+    lastLow := swingLow
+
+bosLong  = not na(lastHigh) and close > lastHigh
+bosShort = not na(lastLow) and close < lastLow
+
+ema20Reclaim = ta.crossover(close, ema20)
+ema20Reject  = ta.crossunder(close, ema20)
+
+longSignal  = ema20Reclaim and longTrend and volSpike and (not useVWAP or aboveVWAP)
+shortSignal = ema20Reject and shortTrend and volSpike and (not useVWAP or belowVWAP)
+
+sessionName = session.ismarket ? "Market" : "OffSession"
+
+side       = longSignal ? "long" : shortSignal ? "short" : ""
+trigger    = longSignal ? "ema20_reclaim" : shortSignal ? "ema20_reject" : ""
+trendState = longTrend ? "long_trend" : shortTrend ? "short_trend" : "neutral"
+vwapState  = aboveVWAP ? "above_vwap" : belowVWAP ? "below_vwap" : "neutral"
+volState   = volSpike ? "spike" : "normal"
+structState = bosLong ? "bos" : bosShort ? "bos" : "neutral"
+
+json = '{"market":"' + syminfo.ticker + '",' +
+       '"side":"' + side + '",' +
+       '"price":' + str.tostring(close) + ',' +
+       '"trigger":"' + trigger + '",' +
+       '"timeframe":"' + timeframe.period + '",' +
+       '"trend_state":"' + trendState + '",' +
+       '"volume_state":"' + volState + '",' +
+       '"vwap_state":"' + vwapState + '",' +
+       '"structure_state":"' + structState + '",' +
+       '"session":"' + sessionName + '",' +
+       '"atr":' + str.tostring(atr) + ',' +
+       '"note":"' + webhookNote + '"}'
+
+if longSignal
+    alert(json, alert.freq_once_per_bar_close)
+    if showLabels
+        label.new(bar_index, low, "V1000 LONG", style=label.style_label_up, textcolor=color.white)
+
+if shortSignal
+    alert(json, alert.freq_once_per_bar_close)
+    if showLabels
+        label.new(bar_index, high, "V1000 SHORT", style=label.style_label_down, textcolor=color.white)
+
+plot(ema20, "EMA20")
+plot(ema50, "EMA50")
+plot(ema200, "EMA200")
+plot(vwapV, "VWAP")

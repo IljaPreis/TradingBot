@@ -38,7 +38,7 @@ TRADES={}
 LAST_SENT={}
 CALENDAR=[]
 
-app=FastAPI(title="TradingBot V1000 Institutional Trading Terminal")
+app=FastAPI(title="TradingBot V400 Intelligence Scanner")
 
 class Signal(BaseModel):
     market:str
@@ -307,9 +307,9 @@ async def startup():
     if CAL_ON: asyncio.create_task(calendar_loop())
 
 @app.get("/health")
-async def health(): return {"status":"online","name":"TradingBot V1000 Institutional Trading Terminal","markets":len(WATCHLIST)}
+async def health(): return {"status":"online","name":"TradingBot V400 Intelligence Scanner","markets":len(WATCHLIST)}
 @app.get("/test-telegram")
-async def test_telegram(): await tg("✅ TradingBot V1000 Institutional Trading Terminal ist online."); return {"telegram":"sent"}
+async def test_telegram(): await tg("✅ TradingBot V400 Intelligence Scanner ist online."); return {"telegram":"sent"}
 @app.get("/context")
 async def context_get(): return CTX
 @app.post("/context")
@@ -391,7 +391,7 @@ async def webhook(req:Request):
     reason_text="\n".join("• "+x for x in reasons); macro_text=", ".join(ma["reasons"]) or "neutral"
     priority="🔥 A+ TOP SETUP" if score100>=92 else "🟢 A SETUP" if score100>=85 else "🟡 B SETUP"
     block_note="⚠️ Kalender-Block aktiv: "+", ".join([b.get("title","Event") for b in blocks]) if blocks else "Kein Kalender-Block"
-    msg=f"""🚨 <b>TradingBot V1000 Institutional Trading Terminal</b>
+    msg=f"""🚨 <b>TradingBot V400 Intelligence Scanner</b>
 <b>{priority}</b>
 
 <b>Markt:</b> {a.market.upper()}
@@ -435,7 +435,7 @@ async def dashboard():
     news_html="".join(f"<li>{h[0]} | {h[2]} {h[3]} | {h[1]}</li>" for h in get_headlines(10)) or "<li>Keine News</li>"
     cal_html="".join(f"<li>{e.get('time','-')} | {e.get('impact')} | {e.get('currency')} | {e.get('title')}</li>" for e in CALENDAR[:10]) or "<li>Keine Events</li>"
     rows="".join(f"<tr><td>{m}</td><td>{STATE.get(m,{}).get('bias','Flat')}</td><td>{STATE.get(m,{}).get('score100','-')}</td><td>{STATE.get(m,{}).get('confidence','')}</td><td>{STATE.get(m,{}).get('trigger','-')}</td><td>{STATE.get(m,{}).get('price','-')}</td><td>{STATE.get(m,{}).get('status','Wartet')}</td><td>{STATE.get(m,{}).get('updated','-')}</td></tr>" for m in WATCHLIST)
-    return f"""<html><head><title>TradingBot V1000</title><style>body{{font-family:Arial;background:#0f172a;color:#e5e7eb;padding:20px}}.card{{background:#111827;padding:18px;border-radius:12px;margin-bottom:20px}}table{{width:100%;border-collapse:collapse}}td,th{{border-bottom:1px solid #334155;padding:8px;text-align:left}}th{{color:#93c5fd}}b{{color:#fff}}</style></head><body><h1>TradingBot V1000 Institutional Trading Terminal</h1><div class='card'><b>Status:</b> Online<br><b>Märkte:</b> {len(WATCHLIST)}</div><div class='card'><h2>Top-Setups / Priorität</h2><ul>{top_html}</ul></div><div class='card'><h2>Aktive Trades</h2><ul>{trades_html}</ul></div><div class='card'><h2>Macro Intelligence</h2><b>Regime:</b> {ma['regime']}<br><b>Risk:</b> {ma['risk_score']}%<br><b>USD:</b> {ma['usd_score']}%<br><b>Bonds:</b> {ma['bonds_score']}%<br><b>Öl:</b> {ma['oil_score']}%<br><b>Gründe:</b> {', '.join(ma['reasons'])}</div><div class='card'><h2>Wirtschaftskalender</h2><ul>{cal_html}</ul></div><div class='card'><h2>Headlines</h2><ul>{news_html}</ul></div><div class='card'><h2>Watchlist Live-State</h2><table><tr><th>Markt</th><th>Bias</th><th>Score</th><th>Conf</th><th>Trigger</th><th>Preis</th><th>Status</th><th>Update</th></tr>{rows}</table></div></body></html>"""
+    return f"""<html><head><title>TradingBot V400</title><style>body{{font-family:Arial;background:#0f172a;color:#e5e7eb;padding:20px}}.card{{background:#111827;padding:18px;border-radius:12px;margin-bottom:20px}}table{{width:100%;border-collapse:collapse}}td,th{{border-bottom:1px solid #334155;padding:8px;text-align:left}}th{{color:#93c5fd}}b{{color:#fff}}</style></head><body><h1>TradingBot V400 Intelligence Scanner</h1><div class='card'><b>Status:</b> Online<br><b>Märkte:</b> {len(WATCHLIST)}</div><div class='card'><h2>Top-Setups / Priorität</h2><ul>{top_html}</ul></div><div class='card'><h2>Aktive Trades</h2><ul>{trades_html}</ul></div><div class='card'><h2>Macro Intelligence</h2><b>Regime:</b> {ma['regime']}<br><b>Risk:</b> {ma['risk_score']}%<br><b>USD:</b> {ma['usd_score']}%<br><b>Bonds:</b> {ma['bonds_score']}%<br><b>Öl:</b> {ma['oil_score']}%<br><b>Gründe:</b> {', '.join(ma['reasons'])}</div><div class='card'><h2>Wirtschaftskalender</h2><ul>{cal_html}</ul></div><div class='card'><h2>Headlines</h2><ul>{news_html}</ul></div><div class='card'><h2>Watchlist Live-State</h2><table><tr><th>Markt</th><th>Bias</th><th>Score</th><th>Conf</th><th>Trigger</th><th>Preis</th><th>Status</th><th>Update</th></tr>{rows}</table></div></body></html>"""
 
 
 # ===== V31-V40 MASTER EXTENSIONS =====
@@ -443,7 +443,7 @@ async def dashboard():
 @app.get("/v40")
 async def v40_info():
     return {
-        "version": "TradingBot V1000 Institutional Trading Terminal",
+        "version": "TradingBot V400 Intelligence Scanner",
         "features": [
             "V31 AI Score 0-100",
             "V32 Strength Ranking",
@@ -470,7 +470,7 @@ async def best_shorts():
 async def status():
     return {
         "status": "online",
-        "version": "TradingBot V1000 Institutional Trading Terminal",
+        "version": "TradingBot V400 Intelligence Scanner",
         "markets": len(WATCHLIST),
         "active_trades": len(TRADES),
         "top": top_rankings(5),
@@ -496,7 +496,7 @@ async def telegram_command(data: dict):
     elif cmd == "/macro":
         msg = "🌍 Macro Score\\n" + str(macro_score())
     elif cmd == "/status":
-        msg = f"✅ TradingBot V1000 Institutional Trading Terminal online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
+        msg = f"✅ TradingBot V400 Intelligence Scanner online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
     else:
         msg = "Befehle: /top /long /short /macro /status"
 
@@ -522,7 +522,7 @@ def ai_grade(score):
 @app.get("/v50")
 async def v50_info():
     return {
-        "version": "TradingBot V1000 Institutional Trading Terminal",
+        "version": "TradingBot V400 Intelligence Scanner",
         "features": [
             "AI Confidence Engine",
             "Liquidity Sweep Bewertung",
@@ -597,7 +597,7 @@ async def telegram_v50(data: dict):
     elif cmd == "/calendar":
         msg = "📅 V50 CALENDAR\\n" + "\\n".join([str(x) for x in CALENDAR[:8]])
     elif cmd == "/status":
-        msg = f"✅ TradingBot V1000 Institutional Trading Terminal online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
+        msg = f"✅ TradingBot V400 Intelligence Scanner online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
     else:
         msg = "Befehle: /best /long /short /risk /calendar /status"
 
@@ -625,7 +625,7 @@ def liquidity_grade(market):
 @app.get("/v60")
 async def v60_info():
     return {
-        "version": "TradingBot V1000 Institutional Trading Terminal",
+        "version": "TradingBot V400 Intelligence Scanner",
         "features": [
             "Volume Profile Vorbereitung",
             "POC/VAH/VAL Zonen",
@@ -702,7 +702,7 @@ async def telegram_v60(data: dict):
     elif cmd == "/vwap":
         msg = "📊 VWAP/EMA Confluence\\n" + str(await vwap_confluence())
     elif cmd == "/status":
-        msg = f"✅ TradingBot V1000 Institutional Trading Terminal online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
+        msg = f"✅ TradingBot V400 Intelligence Scanner online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
     else:
         msg = "Befehle: /inst /zones /vwap /status"
 
@@ -725,7 +725,7 @@ def trade_summary():
 @app.get("/v70")
 async def v70_info():
     return {
-        "version": "TradingBot V1000 Institutional Trading Terminal",
+        "version": "TradingBot V400 Intelligence Scanner",
         "features": [
             "Break-even Manager",
             "Trailing Stop Hinweise",
@@ -781,7 +781,7 @@ async def telegram_v70(data: dict):
     elif cmd == "/risk":
         msg = "⚠️ V70 RISK EXPOSURE\\n" + str(await risk_exposure())
     elif cmd == "/status":
-        msg = f"✅ TradingBot V1000 Institutional Trading Terminal online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
+        msg = f"✅ TradingBot V400 Intelligence Scanner online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
     else:
         msg = "Befehle: /trades /risk /status"
 
@@ -806,7 +806,7 @@ def setup_stats():
 @app.get("/v80")
 async def v80_info():
     return {
-        "version": "TradingBot V1000 Institutional Trading Terminal",
+        "version": "TradingBot V400 Intelligence Scanner",
         "features": [
             "Setup Statistik",
             "Winrate Vorbereitung",
@@ -882,7 +882,7 @@ async def telegram_v80(data: dict):
     elif cmd == "/triggers":
         msg = "📊 TRIGGER RANKING\\n" + str(await trigger_ranking())
     elif cmd == "/status":
-        msg = f"✅ TradingBot V1000 Institutional Trading Terminal online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
+        msg = f"✅ TradingBot V400 Intelligence Scanner online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
     else:
         msg = "Befehle: /learning /triggers /status"
 
@@ -923,7 +923,7 @@ def portfolio_stats():
 @app.get("/v90")
 async def v90_info():
     return {
-        "version": "TradingBot V1000 Institutional Trading Terminal",
+        "version": "TradingBot V400 Intelligence Scanner",
         "features": [
             "Portfolio Stats",
             "Winrate Center",
@@ -978,7 +978,7 @@ async def telegram_v90(data: dict):
     elif cmd == "/closed":
         msg = "✅ CLOSED STATS\\n" + str(await closed_stats())
     elif cmd == "/status":
-        msg = f"✅ TradingBot V1000 Institutional Trading Terminal online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
+        msg = f"✅ TradingBot V400 Intelligence Scanner online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
     else:
         msg = "Befehle: /portfolio /winrate /open /closed /status"
 
@@ -1038,7 +1038,7 @@ def professional_decision(market: str):
 @app.get("/v100")
 async def v100_info():
     return {
-        "version": "TradingBot V1000 Institutional Trading Terminal",
+        "version": "TradingBot V400 Intelligence Scanner",
         "features": [
             "Professional Decision Engine",
             "High Probability Filter",
@@ -1115,7 +1115,7 @@ async def telegram_v100(data: dict):
     elif cmd == "/filter":
         msg = "🚦 V100 TRADE FILTER\\n" + str(await trade_filter())
     elif cmd == "/status":
-        msg = f"✅ TradingBot V1000 Institutional Trading Terminal online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
+        msg = f"✅ TradingBot V400 Intelligence Scanner online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
     else:
         msg = "Befehle: /pro /a+ /filter /status"
 
@@ -1141,7 +1141,7 @@ def trade_manager_status(market: str, price):
 @app.get("/v110")
 async def v110_info():
     return {
-        "version": "TradingBot V1000 Institutional Trading Terminal",
+        "version": "TradingBot V400 Intelligence Scanner",
         "features": [
             "TP1 Break-Even Alert",
             "TP2 Teilgewinn Alert",
@@ -1188,7 +1188,7 @@ async def telegram_v110(data: dict):
     elif cmd == "/open":
         msg = "📌 OPEN TRADES\\n" + str([t for t in TRADES.values() if t.get("status") == "OPEN"])
     elif cmd == "/status":
-        msg = f"✅ TradingBot V1000 Institutional Trading Terminal online | Trades: {len(TRADES)}"
+        msg = f"✅ TradingBot V400 Intelligence Scanner online | Trades: {len(TRADES)}"
     else:
         msg = "Befehle: /manager /open /status"
 
@@ -1246,7 +1246,7 @@ def smart_money_score(data: dict):
 @app.get("/v120")
 async def v120_info():
     return {
-        "version": "TradingBot V1000 Institutional Trading Terminal",
+        "version": "TradingBot V400 Intelligence Scanner",
         "features": [
             "Liquidity Sweeps",
             "Buy Side / Sell Side Liquidity",
@@ -1320,7 +1320,7 @@ async def telegram_v120(data: dict):
             [f"{x['market']} {x['score']}/100 {x['grade']}" for x in rows]
         )
     elif cmd == "/status":
-        msg = f"✅ TradingBot V1000 Institutional Trading Terminal online | SMC Märkte: {len(SMART_MONEY)}"
+        msg = f"✅ TradingBot V400 Intelligence Scanner online | SMC Märkte: {len(SMART_MONEY)}"
     else:
         msg = "Befehle: /smc /status"
 
@@ -1407,7 +1407,7 @@ def institutional_master_score(market: str):
 @app.get("/v200")
 async def v200_info():
     return {
-        "version": "TradingBot V1000 Institutional Trading Terminal",
+        "version": "TradingBot V400 Intelligence Scanner",
         "modules": [
             "V130 Volume Profile Engine",
             "V140 CVD / Delta Engine",
@@ -1598,7 +1598,7 @@ async def master_ranking():
 @app.get("/v200-dashboard")
 async def v200_dashboard():
     return {
-        "version": "TradingBot V1000 Institutional Trading Terminal",
+        "version": "TradingBot V400 Intelligence Scanner",
         "top": (await master_ranking())["ranking"][:10],
         "trades": TRADES,
         "smart_money": SMART_MONEY,
@@ -1622,7 +1622,7 @@ async def telegram_v200(data: dict):
     elif cmd == "/dashboard":
         msg = "📊 V200 DASHBOARD\\n" + str(await v200_dashboard())
     elif cmd == "/status":
-        msg = f"✅ TradingBot V1000 Institutional Trading Terminal online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
+        msg = f"✅ TradingBot V400 Intelligence Scanner online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
     else:
         msg = "Befehle: /master /dashboard /status"
 
@@ -1672,7 +1672,7 @@ def terminal_decision(market: str):
 @app.get("/v300")
 async def v300_info():
     return {
-        "version": "TradingBot V1000 Institutional Trading Terminal",
+        "version": "TradingBot V400 Intelligence Scanner",
         "modules": [
             "V210 Base Score Auto Fix",
             "V220 News AI Vorbereitung",
@@ -1729,7 +1729,7 @@ async def risk_terminal():
 @app.get("/terminal-dashboard")
 async def terminal_dashboard():
     return {
-        "version": "TradingBot V1000 Institutional Trading Terminal",
+        "version": "TradingBot V400 Intelligence Scanner",
         "elite": (await a_elite())["elite"],
         "rotation": await market_rotation(),
         "risk": await risk_terminal(),
@@ -1761,7 +1761,7 @@ async def telegram_v300(data: dict):
     elif cmd == "/risk":
         msg = "⚠️ V300 RISK\\n" + str(await risk_terminal())
     elif cmd == "/status":
-        msg = f"✅ TradingBot V1000 Institutional Trading Terminal online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
+        msg = f"✅ TradingBot V400 Intelligence Scanner online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
     else:
         msg = "Befehle: /terminal /elite /rotation /risk /status"
 
@@ -1798,7 +1798,7 @@ def scanner_quality(market):
 @app.get("/v400")
 async def v400_info():
     return {
-        "version": "TradingBot V1000 Institutional Trading Terminal",
+        "version": "TradingBot V400 Intelligence Scanner",
         "modules": [
             "V310 Live News AI",
             "V320 Economic Impact Scanner",
@@ -1881,7 +1881,7 @@ async def news_ai_get():
 @app.get("/intelligence-dashboard")
 async def intelligence_dashboard():
     return {
-        "version": "TradingBot V1000 Institutional Trading Terminal",
+        "version": "TradingBot V400 Intelligence Scanner",
         "top": (await scan_all())["scan"][:10],
         "best_longs": (await best_longs())["best_longs"],
         "best_shorts": (await best_shorts())["best_shorts"],
@@ -1913,7 +1913,7 @@ async def telegram_v400(data: dict):
     elif cmd == "/heatmap":
         msg = "🔥 HEATMAP\\n" + str((await market_heatmap())["heatmap"][:15])
     elif cmd == "/status":
-        msg = f"✅ TradingBot V1000 Institutional Trading Terminal online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
+        msg = f"✅ TradingBot V400 Intelligence Scanner online | Märkte: {len(WATCHLIST)} | Trades: {len(TRADES)}"
     else:
         msg = "Befehle: /scan /longs /shorts /heatmap /status"
 
@@ -1921,314 +1921,3 @@ async def telegram_v400(data: dict):
     return {"sent": msg}
 
 # ===== END V301-V400 INTELLIGENCE SCANNER =====
-
-
-# ===== V410-V500 RELEASE CANDIDATE =====
-
-def safe_score(x):
-    try:
-        return float(x or 0)
-    except Exception:
-        return 0.0
-
-def connected_score(market):
-    market = market.upper()
-    st = STATE.get(market, {})
-    smc = SMART_MONEY.get(market, {})
-    vp = VOLUME_PROFILE.get(market, {})
-    de = DELTA_ENGINE.get(market, {})
-    co = CORRELATION_MATRIX.get(market, {})
-    mtf = MTF_AI.get(market, {})
-    rg = REGIME_AI.get(market, {})
-
-    scores = [
-        safe_score(st.get("score100")),
-        safe_score(smc.get("smc_score")),
-        safe_score(vp.get("vp_score")),
-        safe_score(de.get("delta_score")),
-        safe_score(co.get("corr_score")),
-        safe_score(mtf.get("mtf_score")),
-        safe_score(rg.get("regime_score")),
-    ]
-
-    active = [x for x in scores if x > 0]
-    final = round(sum(active) / len(active), 1) if active else 0
-
-    bias = st.get("bias", "Flat")
-    if bias == "Flat":
-        if mtf.get("1m") == "long" or mtf.get("15m") == "long":
-            bias = "LONG"
-        elif mtf.get("1m") == "short" or mtf.get("15m") == "short":
-            bias = "SHORT"
-
-    if final >= 95:
-        label = "A+++ ELITE"
-        decision = "TRADE_ALLOWED"
-    elif final >= 90:
-        label = "A++"
-        decision = "TRADE_ALLOWED"
-    elif final >= 85:
-        label = "A+"
-        decision = "TRADE_ALLOWED"
-    elif final >= 75:
-        label = "WATCH"
-        decision = "WAIT"
-    else:
-        label = "WAIT"
-        decision = "WAIT"
-
-    return {
-        "market": market,
-        "bias": bias,
-        "score": final,
-        "label": label,
-        "decision": decision,
-        "state_score": scores[0],
-        "smc": scores[1],
-        "vp": scores[2],
-        "delta": scores[3],
-        "corr": scores[4],
-        "mtf": scores[5],
-        "regime": scores[6],
-        "trigger": st.get("trigger", "-"),
-        "price": st.get("price", "-"),
-        "updated": st.get("updated", "-")
-    }
-
-@app.get("/v500")
-async def v500_info():
-    return {
-        "version": "TradingBot V1000 Institutional Trading Terminal",
-        "status": "connected",
-        "modules": [
-            "TradingView Webhook",
-            "Telegram Alerts",
-            "Dashboard",
-            "Trade Manager",
-            "Smart Money Engine",
-            "Volume Profile Engine",
-            "Delta/CVD Engine",
-            "Correlation Engine",
-            "MTF AI",
-            "Regime AI",
-            "Scanner",
-            "Heatmap",
-            "Risk Terminal"
-        ]
-    }
-
-@app.get("/v500-scan")
-async def v500_scan():
-    rows = [connected_score(m) for m in WATCHLIST]
-    rows.sort(key=lambda x: x["score"], reverse=True)
-    return {"version": "V500", "scan": rows}
-
-@app.get("/v500-heatmap")
-async def v500_heatmap():
-    rows = (await v500_scan())["scan"]
-    return {"heatmap": rows}
-
-@app.get("/v500-longs")
-async def v500_longs():
-    rows = (await v500_scan())["scan"]
-    return {"longs": [x for x in rows if x["bias"] == "LONG" and x["score"] >= 75]}
-
-@app.get("/v500-shorts")
-async def v500_shorts():
-    rows = (await v500_scan())["scan"]
-    return {"shorts": [x for x in rows if x["bias"] == "SHORT" and x["score"] >= 75]}
-
-@app.get("/v500-dashboard")
-async def v500_dashboard():
-    rows = (await v500_scan())["scan"]
-    return {
-        "version": "TradingBot V1000 Institutional Trading Terminal",
-        "top": rows[:10],
-        "longs": (await v500_longs())["longs"],
-        "shorts": (await v500_shorts())["shorts"],
-        "trades": TRADES,
-        "state": STATE,
-        "smart_money": SMART_MONEY,
-        "volume_profile": VOLUME_PROFILE,
-        "delta": DELTA_ENGINE,
-        "correlation": CORRELATION_MATRIX,
-        "mtf": MTF_AI,
-        "regime": REGIME_AI
-    }
-
-def fmt_rows(title, rows):
-    if not rows:
-        return title + "\nKeine Setups."
-    lines = [title]
-    for i, x in enumerate(rows[:10], 1):
-        lines.append(
-            f"{i}. {x['market']} {x['bias']} | {x['score']}/100 | {x['label']} | {x['trigger']}"
-        )
-    return "\n".join(lines)
-
-@app.post("/telegram-v500")
-async def telegram_v500(data: dict):
-    cmd = str(data.get("text", "")).lower().strip()
-
-    if cmd in ["/v500", "/scan"]:
-        rows = (await v500_scan())["scan"]
-        msg = fmt_rows("🧠 V500 SCANNER", rows)
-    elif cmd == "/longs":
-        rows = (await v500_longs())["longs"]
-        msg = fmt_rows("🟢 V500 BEST LONGS", rows)
-    elif cmd == "/shorts":
-        rows = (await v500_shorts())["shorts"]
-        msg = fmt_rows("🔴 V500 BEST SHORTS", rows)
-    elif cmd == "/heatmap":
-        rows = (await v500_heatmap())["heatmap"]
-        msg = fmt_rows("🔥 V500 HEATMAP", rows)
-    elif cmd == "/status":
-        msg = f"✅ TradingBot V1000 online\nMärkte: {len(WATCHLIST)}\nTrades: {len(TRADES)}"
-    else:
-        msg = "Befehle:\n/scan\n/longs\n/shorts\n/heatmap\n/status"
-
-    await tg(msg)
-    return {"sent": msg}
-
-# ===== END V410-V500 RELEASE CANDIDATE =====
-
-
-# ===== V600-V1000 FINAL INSTITUTIONAL PACKAGE =====
-
-PORTFOLIO_RISK = {}
-SETUP_STATS = {}
-JOURNAL = []
-ACCOUNT = {"balance": 100000, "risk_per_trade": 0.5, "daily_loss_limit": 2.0, "max_trades": 3}
-
-def final_grade(score):
-    score = safe_score(score)
-    if score >= 97: return "A+++ ELITE"
-    if score >= 92: return "A++ TOP SETUP"
-    if score >= 88: return "A+ SETUP"
-    if score >= 80: return "A WATCH"
-    return "WAIT"
-
-def final_decision(x):
-    score = safe_score(x.get("score"))
-    bias = x.get("bias", "Flat")
-    if score >= 92 and bias in ["LONG", "SHORT"]:
-        return "TRADE_ALLOWED"
-    if score >= 85:
-        return "WAIT_FOR_CONFIRMATION"
-    return "WAIT"
-
-def position_size(entry, sl):
-    try:
-        entry = float(entry); sl = float(sl)
-        risk_cash = ACCOUNT["balance"] * ACCOUNT["risk_per_trade"] / 100
-        dist = abs(entry - sl)
-        if dist <= 0: return 0
-        return round(risk_cash / dist, 2)
-    except Exception:
-        return 0
-
-def institutional_terminal_score(market):
-    x = connected_score(market)
-    x["grade"] = final_grade(x["score"])
-    x["decision"] = final_decision(x)
-    st = STATE.get(market.upper(), {})
-    entry = st.get("price")
-    sl = TRADES.get(market.upper(), {}).get("sl") if market.upper() in TRADES else None
-    x["position_size_units"] = position_size(entry, sl) if entry and sl else 0
-    x["risk_profile"] = {
-        "max_daily_loss": ACCOUNT["daily_loss_limit"],
-        "risk_per_trade": ACCOUNT["risk_per_trade"],
-        "max_trades": ACCOUNT["max_trades"],
-        "open_trades": len(TRADES)
-    }
-    return x
-
-@app.get("/v1000")
-async def v1000_info():
-    return {
-        "version": "TradingBot V1000 Institutional Trading Terminal",
-        "status": "final",
-        "modules": [
-            "V600 Market Profile / POC / VAH / VAL",
-            "V650 Delta / CVD / Orderflow",
-            "V700 AI Learning Stats",
-            "V750 Trade Journal",
-            "V800 Multi Market Ranking",
-            "V850 Portfolio Heatmap",
-            "V900 Prop Firm Risk Manager",
-            "V950 Final Telegram Terminal",
-            "V1000 Institutional Decision Engine"
-        ]
-    }
-
-@app.get("/terminal-final/{market}")
-async def terminal_final(market: str):
-    return institutional_terminal_score(market)
-
-@app.get("/v1000-scan")
-async def v1000_scan():
-    rows = [institutional_terminal_score(m) for m in WATCHLIST]
-    rows.sort(key=lambda x: safe_score(x.get("score")), reverse=True)
-    return {"version": "V1000", "scan": rows}
-
-@app.get("/v1000-elite")
-async def v1000_elite():
-    rows = (await v1000_scan())["scan"]
-    return {"elite": [x for x in rows if x["decision"] == "TRADE_ALLOWED"]}
-
-@app.get("/v1000-dashboard")
-async def v1000_dashboard():
-    rows = (await v1000_scan())["scan"]
-    return {
-        "version": "TradingBot V1000 Institutional Trading Terminal",
-        "elite": [x for x in rows if x["decision"] == "TRADE_ALLOWED"],
-        "top10": rows[:10],
-        "trades": TRADES,
-        "portfolio_risk": ACCOUNT,
-        "journal": JOURNAL[-50:],
-        "stats": SETUP_STATS
-    }
-
-@app.post("/journal")
-async def journal_add(data: dict):
-    JOURNAL.append({**data, "time": now()})
-    return {"accepted": True, "journal_size": len(JOURNAL)}
-
-@app.post("/account-risk")
-async def account_risk(data: dict):
-    for k in ["balance", "risk_per_trade", "daily_loss_limit", "max_trades"]:
-        if k in data:
-            ACCOUNT[k] = data[k]
-    return ACCOUNT
-
-def fmt_v1000(rows, title):
-    if not rows:
-        return title + "\nKeine Elite-Setups."
-    out = [title]
-    for i, x in enumerate(rows[:10], 1):
-        out.append(
-            f"{i}. {x['market']} {x['bias']} | {x['score']}/100 | {x['grade']} | {x['decision']} | {x.get('trigger','-')}"
-        )
-    return "\n".join(out)
-
-@app.post("/telegram-v1000")
-async def telegram_v1000(data: dict):
-    cmd = str(data.get("text", "")).lower().strip()
-    if cmd in ["/scan", "/v1000"]:
-        rows = (await v1000_scan())["scan"]
-        msg = fmt_v1000(rows, "🏦 V1000 INSTITUTIONAL SCAN")
-    elif cmd == "/elite":
-        rows = (await v1000_elite())["elite"]
-        msg = fmt_v1000(rows, "🔥 V1000 ELITE SETUPS")
-    elif cmd == "/risk":
-        msg = f"🛡 RISK\nBalance: {ACCOUNT['balance']}\nRisk/Trade: {ACCOUNT['risk_per_trade']}%\nDaily Loss: {ACCOUNT['daily_loss_limit']}%\nOpen Trades: {len(TRADES)}"
-    elif cmd == "/trades":
-        msg = "📊 TRADES\n" + str(TRADES)
-    elif cmd == "/status":
-        msg = f"✅ TradingBot V1000 online\nMärkte: {len(WATCHLIST)}\nTrades: {len(TRADES)}"
-    else:
-        msg = "Befehle:\n/scan\n/elite\n/risk\n/trades\n/status"
-    await tg(msg)
-    return {"sent": msg}
-
-# ===== END V600-V1000 FINAL INSTITUTIONAL PACKAGE =====

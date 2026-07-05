@@ -1,0 +1,33 @@
+//@version=6
+indicator("TradingBot V1000 MTF Context", overlay=false)
+
+tf1  = input.timeframe("1", "TF 1")
+tf5  = input.timeframe("5", "TF 5")
+tf15 = input.timeframe("15", "TF 15")
+tf60 = input.timeframe("60", "TF 1H")
+tf240 = input.timeframe("240", "TF 4H")
+
+trend(tf) =>
+    e20 = request.security(syminfo.tickerid, tf, ta.ema(close,20))
+    e50 = request.security(syminfo.tickerid, tf, ta.ema(close,50))
+    e200 = request.security(syminfo.tickerid, tf, ta.ema(close,200))
+    e20 > e50 and e50 > e200 ? "long" : e20 < e50 and e50 < e200 ? "short" : "neutral"
+
+t1 = trend(tf1)
+t5 = trend(tf5)
+t15 = trend(tf15)
+t60 = trend(tf60)
+t240 = trend(tf240)
+
+bulls = (t1=="long"?1:0)+(t5=="long"?1:0)+(t15=="long"?1:0)+(t60=="long"?1:0)+(t240=="long"?1:0)
+bears = (t1=="short"?1:0)+(t5=="short"?1:0)+(t15=="short"?1:0)+(t60=="short"?1:0)+(t240=="short"?1:0)
+
+align = bulls >= 4 ? "full_long" : bears >= 4 ? "full_short" : "mixed"
+
+json = '{"market":"' + syminfo.ticker + '","1m":"' + t1 + '","5m":"' + t5 + '","15m":"' + t15 + '","1h":"' + t60 + '","4h":"' + t240 + '","alignment":"' + align + '"}'
+
+if barstate.isconfirmed
+    alert(json, alert.freq_once_per_bar_close)
+
+plot(bulls, "Bull TFs")
+plot(bears, "Bear TFs")

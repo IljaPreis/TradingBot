@@ -1,0 +1,32 @@
+//@version=6
+indicator("TradingBot V1000 SMC Context", overlay=true)
+
+len = input.int(5, "Swing Length")
+ph = ta.pivothigh(high, len, len)
+pl = ta.pivotlow(low, len, len)
+
+var float lastHigh = na
+var float lastLow = na
+if not na(ph)
+    lastHigh := ph
+if not na(pl)
+    lastLow := pl
+
+sellSideSweep = not na(lastLow) and low < lastLow and close > lastLow
+buySideSweep  = not na(lastHigh) and high > lastHigh and close < lastHigh
+bosBull = not na(lastHigh) and close > lastHigh
+bosBear = not na(lastLow) and close < lastLow
+
+fvgBull = low > high[2]
+fvgBear = high < low[2]
+
+liq = sellSideSweep ? "sell_side" : buySideSweep ? "buy_side" : "none"
+pd = close < ta.sma(close,50) ? "discount" : "premium"
+
+json = '{"market":"' + syminfo.ticker + '","liquidity_sweep":"' + liq + '","equal_lows":' + str.tostring(sellSideSweep) + ',"bos":' + str.tostring(bosBull or bosBear) + ',"fvg":' + str.tostring(fvgBull or fvgBear) + ',"orderblock":' + str.tostring(bosBull or bosBear) + ',"premium_discount":"' + pd + '"}'
+
+if sellSideSweep or buySideSweep or bosBull or bosBear or fvgBull or fvgBear
+    alert(json, alert.freq_once_per_bar_close)
+
+plotshape(sellSideSweep, title="Sell Side Sweep", style=shape.triangleup, location=location.belowbar)
+plotshape(buySideSweep, title="Buy Side Sweep", style=shape.triangledown, location=location.abovebar)
