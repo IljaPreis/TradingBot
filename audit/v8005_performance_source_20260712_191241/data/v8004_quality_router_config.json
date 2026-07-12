@@ -1,0 +1,51 @@
+{
+  "version": "V8004-LIVE-SHADOW-QUALITY-ROUTER",
+  "enabled": true,
+  "mode": "enforce_quality_routing",
+  "enforce": true,
+  "apply_only_to_v8001": true,
+  "non_v8001_behavior": "KEEP_EXISTING",
+  "require_existing_gate_allow_for_live": true,
+  "broker_auto_execution": false,
+  "v8001_observe_only": true,
+  "v8002_observe_only": true,
+  "v8002_would_block_is_observation_only": true,
+  "require_15m": true,
+  "require_bar_confirmed": true,
+  "require_signal_event_id": true,
+  "require_structure_event_id": true,
+  "require_zone_id_for_playbook_a": true,
+  "require_fresh": true,
+  "reject_chase": true,
+  "playbook_a": {
+    "a_plus_score": 76.0,
+    "a_score": 68.0,
+    "b_score": 58.0,
+    "review_score": 52.0
+  },
+  "playbook_b": {
+    "a_plus_score": 78.0,
+    "a_score": 70.0,
+    "b_score": 60.0,
+    "review_score": 52.0
+  },
+  "a_plus_min_confirmations": 3,
+  "a_min_confirmations": 2,
+  "a_plus_min_aligned_biases": 3,
+  "a_min_aligned_biases": 2,
+  "live_grades": [
+    "A_PLUS",
+    "A"
+  ],
+  "shadow_grades": [
+    "B",
+    "REVIEW"
+  ],
+  "watch_grades": [
+    "WATCH"
+  ],
+  "store_shadow": true,
+  "store_watch_as_shadow": false,
+  "duplicate_route": "NO_TRADE",
+  "invalid_route": "NO_TRADE"
+}

@@ -1,0 +1,71 @@
+{
+  "version": "V8001-PAYLOAD-SCHEMA-1",
+  "schema_version": "V8001_DUAL_PLAYBOOK_ZONE_AUDIT",
+  "signal_timeframe": "15m",
+  "alert_frequency": "once_per_bar_close",
+  "required": [
+    "client_trade_id",
+    "signal_event_id",
+    "structure_event_id",
+    "source",
+    "schema_version",
+    "market",
+    "direction",
+    "price",
+    "entry",
+    "sl",
+    "tp1",
+    "confidence",
+    "setup_name",
+    "setup_family",
+    "playbook",
+    "primary_trigger",
+    "timeframe",
+    "session",
+    "bias_5m",
+    "bias_15m",
+    "bias_30m",
+    "bias_1h",
+    "bias_4h",
+    "bias_1d",
+    "bias_1w"
+  ],
+  "zone_fields": [
+    "zone_id",
+    "zone_type",
+    "zone_tf",
+    "zone_top",
+    "zone_bottom",
+    "zone_touch_count",
+    "zone_first_touch",
+    "reaction_confirmed"
+  ],
+  "confluence_fields": [
+    "confirmations_csv",
+    "sweep_low",
+    "sweep_high",
+    "bull_fvg_retest",
+    "bear_fvg_retest",
+    "bpr_touch",
+    "mss_bull",
+    "mss_bear",
+    "bos_bull",
+    "bos_bear",
+    "volume_spike"
+  ],
+  "compatibility_aliases": {
+    "htf_15m_bias": "bias_15m",
+    "htf_1h_bias": "bias_1h",
+    "htf_4h_bias": "bias_4h",
+    "trigger": "setup_name"
+  },
+  "playbooks": {
+    "PLAYBOOK_A_HTF_OB_REACTION": "HTF/Orderblock zone touch plus lower-timeframe reaction confirmation",
+    "PLAYBOOK_B_SESSION_MOMENTUM": "15m MSS/BOS with 15m and tactical momentum context"
+  },
+  "safety": {
+    "fvg_or_bpr_as_standalone_signal": false,
+    "live_authority": false,
+    "server_default": "observe_only"
+  }
+}
