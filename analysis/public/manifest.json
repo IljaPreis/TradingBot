@@ -1,0 +1,18 @@
+{
+  "files": {
+    "README.md": {
+      "bytes": 551,
+      "sha256": "6933f8d54d0a1c61280f3611af8d2b41778c1d87744d01c025bfc6f790a807fe"
+    },
+    "history/2026-07-18.json": {
+      "bytes": 14573,
+      "sha256": "6daf118eff384466077ad0806afd70460215be3ffb9aeba11c141854786afb03"
+    },
+    "latest.json": {
+      "bytes": 14573,
+      "sha256": "6daf118eff384466077ad0806afd70460215be3ffb9aeba11c141854786afb03"
+    }
+  },
+  "generated_date_utc": "2026-07-18",
+  "version": "V8032.1-PUBLIC-ANALYSIS-SUMMARY-V1"
+}

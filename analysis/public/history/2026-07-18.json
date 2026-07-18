@@ -1,0 +1,639 @@
+{
+  "data_quality": {
+    "duplicate_client_identifiers": 0,
+    "duplicate_shadow_identifiers": 0,
+    "unknown_trade_rows": 0,
+    "unmatched_outcomes": 0
+  },
+  "generated_date_utc": "2026-07-18",
+  "notes": [
+    "Historical totals may contain older cohorts and are not a live-rule decision by themselves.",
+    "No open trades, current directions, signal times, exact prices, raw payloads, tokens or IDs are published.",
+    "V8031 warnings remain observe-only until sufficient closed-outcome evidence exists."
+  ],
+  "performance": {
+    "by_direction": {
+      "LONG": {
+        "avg_r": 0.052632,
+        "breakeven": 0,
+        "closed": 171,
+        "losses": 99,
+        "profit_factor": 1.090909,
+        "rows": 171,
+        "total_r": 9,
+        "win_rate_pct": 42.11,
+        "wins": 72
+      },
+      "SHORT": {
+        "avg_r": -0.04325,
+        "breakeven": 0,
+        "closed": 200,
+        "losses": 124,
+        "profit_factor": 0.930242,
+        "rows": 200,
+        "total_r": -8.65,
+        "win_rate_pct": 38,
+        "wins": 76
+      }
+    },
+    "by_market": {
+      "ASX200": {
+        "avg_r": -0.6875,
+        "breakeven": 0,
+        "closed": 8,
+        "losses": 7,
+        "profit_factor": 0.214286,
+        "rows": 8,
+        "total_r": -5.5,
+        "win_rate_pct": 12.5,
+        "wins": 1
+      },
+      "AUDCAD": {
+        "avg_r": 0.315789,
+        "breakeven": 0,
+        "closed": 19,
+        "losses": 9,
+        "profit_factor": 1.666667,
+        "rows": 19,
+        "total_r": 6,
+        "win_rate_pct": 52.63,
+        "wins": 10
+      },
+      "AUDJPY": {
+        "avg_r": -0.545455,
+        "breakeven": 0,
+        "closed": 11,
+        "losses": 9,
+        "profit_factor": 0.333333,
+        "rows": 11,
+        "total_r": -6,
+        "win_rate_pct": 18.18,
+        "wins": 2
+      },
+      "AUDUSD": {
+        "avg_r": -0.090909,
+        "breakeven": 0,
+        "closed": 11,
+        "losses": 7,
+        "profit_factor": 0.857143,
+        "rows": 11,
+        "total_r": -1,
+        "win_rate_pct": 36.36,
+        "wins": 4
+      },
+      "BRENT": {
+        "avg_r": -0.166667,
+        "breakeven": 0,
+        "closed": 12,
+        "losses": 8,
+        "profit_factor": 0.75,
+        "rows": 12,
+        "total_r": -2,
+        "win_rate_pct": 33.33,
+        "wins": 4
+      },
+      "CADJPY": {
+        "avg_r": 0.041667,
+        "breakeven": 0,
+        "closed": 24,
+        "losses": 14,
+        "profit_factor": 1.071429,
+        "rows": 24,
+        "total_r": 1,
+        "win_rate_pct": 41.67,
+        "wins": 10
+      },
+      "CHFJPY": {
+        "avg_r": 0.111111,
+        "breakeven": 0,
+        "closed": 9,
+        "losses": 5,
+        "profit_factor": 1.2,
+        "rows": 9,
+        "total_r": 1,
+        "win_rate_pct": 44.44,
+        "wins": 4
+      },
+      "EURAUD": {
+        "avg_r": 0.25,
+        "breakeven": 0,
+        "closed": 8,
+        "losses": 4,
+        "profit_factor": 1.5,
+        "rows": 8,
+        "total_r": 2,
+        "win_rate_pct": 50,
+        "wins": 4
+      },
+      "EURCAD": {
+        "avg_r": -0.25,
+        "breakeven": 0,
+        "closed": 10,
+        "losses": 7,
+        "profit_factor": 0.642857,
+        "rows": 10,
+        "total_r": -2.5,
+        "win_rate_pct": 30,
+        "wins": 3
+      },
+      "EURCHF": {
+        "avg_r": -0.833333,
+        "breakeven": 0,
+        "closed": 15,
+        "losses": 14,
+        "profit_factor": 0.107143,
+        "rows": 15,
+        "total_r": -12.5,
+        "win_rate_pct": 6.67,
+        "wins": 1
+      },
+      "EURGBP": {
+        "avg_r": -0.090909,
+        "breakeven": 0,
+        "closed": 11,
+        "losses": 7,
+        "profit_factor": 0.857143,
+        "rows": 11,
+        "total_r": -1,
+        "win_rate_pct": 36.36,
+        "wins": 4
+      },
+      "EURJPY": {
+        "avg_r": -0.464286,
+        "breakeven": 0,
+        "closed": 14,
+        "losses": 11,
+        "profit_factor": 0.409091,
+        "rows": 14,
+        "total_r": -6.5,
+        "win_rate_pct": 21.43,
+        "wins": 3
+      },
+      "EURUSD": {
+        "avg_r": -0.166667,
+        "breakeven": 0,
+        "closed": 12,
+        "losses": 8,
+        "profit_factor": 0.75,
+        "rows": 12,
+        "total_r": -2,
+        "win_rate_pct": 33.33,
+        "wins": 4
+      },
+      "FRA40": {
+        "avg_r": -0.722222,
+        "breakeven": 0,
+        "closed": 9,
+        "losses": 8,
+        "profit_factor": 0.1875,
+        "rows": 9,
+        "total_r": -6.5,
+        "win_rate_pct": 11.11,
+        "wins": 1
+      },
+      "FTSE100": {
+        "avg_r": 0.730769,
+        "breakeven": 0,
+        "closed": 13,
+        "losses": 4,
+        "profit_factor": 3.375,
+        "rows": 13,
+        "total_r": 9.5,
+        "win_rate_pct": 69.23,
+        "wins": 9
+      },
+      "GBPAUD": {
+        "avg_r": 0.041667,
+        "breakeven": 0,
+        "closed": 12,
+        "losses": 7,
+        "profit_factor": 1.071429,
+        "rows": 12,
+        "total_r": 0.5,
+        "win_rate_pct": 41.67,
+        "wins": 5
+      },
+      "GBPCAD": {
+        "avg_r": 0.071429,
+        "breakeven": 0,
+        "closed": 14,
+        "losses": 8,
+        "profit_factor": 1.125,
+        "rows": 14,
+        "total_r": 1,
+        "win_rate_pct": 42.86,
+        "wins": 6
+      },
+      "GBPJPY": {
+        "avg_r": 0.153846,
+        "breakeven": 0,
+        "closed": 13,
+        "losses": 7,
+        "profit_factor": 1.285714,
+        "rows": 13,
+        "total_r": 2,
+        "win_rate_pct": 46.15,
+        "wins": 6
+      },
+      "GBPNZD": {
+        "avg_r": 0.25,
+        "breakeven": 0,
+        "closed": 14,
+        "losses": 7,
+        "profit_factor": 1.5,
+        "rows": 14,
+        "total_r": 3.5,
+        "win_rate_pct": 50,
+        "wins": 7
+      },
+      "GBPUSD": {
+        "avg_r": -0.204545,
+        "breakeven": 0,
+        "closed": 22,
+        "losses": 15,
+        "profit_factor": 0.7,
+        "rows": 22,
+        "total_r": -4.5,
+        "win_rate_pct": 31.82,
+        "wins": 7
+      },
+      "GER40": {
+        "avg_r": 0.09375,
+        "breakeven": 0,
+        "closed": 16,
+        "losses": 9,
+        "profit_factor": 1.166667,
+        "rows": 16,
+        "total_r": 1.5,
+        "win_rate_pct": 43.75,
+        "wins": 7
+      },
+      "NZDCAD": {
+        "avg_r": 1,
+        "breakeven": 0,
+        "closed": 5,
+        "losses": 1,
+        "profit_factor": 6,
+        "rows": 5,
+        "total_r": 5,
+        "win_rate_pct": 80,
+        "wins": 4
+      },
+      "NZDJPY": {
+        "avg_r": 0.570833,
+        "breakeven": 0,
+        "closed": 12,
+        "losses": 5,
+        "profit_factor": 2.37,
+        "rows": 12,
+        "total_r": 6.85,
+        "win_rate_pct": 58.33,
+        "wins": 7
+      },
+      "NZDUSD": {
+        "avg_r": 0.428571,
+        "breakeven": 0,
+        "closed": 7,
+        "losses": 3,
+        "profit_factor": 2,
+        "rows": 7,
+        "total_r": 3,
+        "win_rate_pct": 57.14,
+        "wins": 4
+      },
+      "US100": {
+        "avg_r": 0.666667,
+        "breakeven": 0,
+        "closed": 9,
+        "losses": 3,
+        "profit_factor": 3,
+        "rows": 9,
+        "total_r": 6,
+        "win_rate_pct": 66.67,
+        "wins": 6
+      },
+      "US30": {
+        "avg_r": -0.0625,
+        "breakeven": 0,
+        "closed": 16,
+        "losses": 10,
+        "profit_factor": 0.9,
+        "rows": 16,
+        "total_r": -1,
+        "win_rate_pct": 37.5,
+        "wins": 6
+      },
+      "USDCAD": {
+        "avg_r": 0.09375,
+        "breakeven": 0,
+        "closed": 16,
+        "losses": 9,
+        "profit_factor": 1.166667,
+        "rows": 16,
+        "total_r": 1.5,
+        "win_rate_pct": 43.75,
+        "wins": 7
+      },
+      "USDJPY": {
+        "avg_r": -0.772727,
+        "breakeven": 0,
+        "closed": 11,
+        "losses": 10,
+        "profit_factor": 0.15,
+        "rows": 11,
+        "total_r": -8.5,
+        "win_rate_pct": 9.09,
+        "wins": 1
+      },
+      "XAUUSD": {
+        "avg_r": 0.363636,
+        "breakeven": 0,
+        "closed": 11,
+        "losses": 5,
+        "profit_factor": 1.8,
+        "rows": 11,
+        "total_r": 4,
+        "win_rate_pct": 54.55,
+        "wins": 6
+      }
+    },
+    "by_playbook": {
+      "PLAYBOOK_A_HTF_OB_REACTION": {
+        "avg_r": -0.051404,
+        "breakeven": 0,
+        "closed": 178,
+        "losses": 111,
+        "profit_factor": 0.917568,
+        "rows": 178,
+        "total_r": -9.15,
+        "win_rate_pct": 37.64,
+        "wins": 67
+      },
+      "PLAYBOOK_B_SESSION_MOMENTUM": {
+        "avg_r": 0.041667,
+        "breakeven": 0,
+        "closed": 192,
+        "losses": 112,
+        "profit_factor": 1.071429,
+        "rows": 192,
+        "total_r": 8,
+        "win_rate_pct": 41.67,
+        "wins": 80
+      }
+    },
+    "by_session": {
+      "ASIA": {
+        "avg_r": -0.08046,
+        "breakeven": 0,
+        "closed": 174,
+        "losses": 110,
+        "profit_factor": 0.872727,
+        "rows": 174,
+        "total_r": -14,
+        "win_rate_pct": 36.78,
+        "wins": 64
+      },
+      "EU": {
+        "avg_r": 0.168681,
+        "breakeven": 0,
+        "closed": 91,
+        "losses": 49,
+        "profit_factor": 1.313265,
+        "rows": 91,
+        "total_r": 15.35,
+        "win_rate_pct": 46.15,
+        "wins": 42
+      },
+      "NY": {
+        "avg_r": -0.004854,
+        "breakeven": 0,
+        "closed": 103,
+        "losses": 62,
+        "profit_factor": 0.991935,
+        "rows": 103,
+        "total_r": -0.5,
+        "win_rate_pct": 39.81,
+        "wins": 41
+      }
+    },
+    "by_setup": {
+      "BEAR_OB_REACTION_CONFIRMED": {
+        "avg_r": -0.187113,
+        "breakeven": 0,
+        "closed": 97,
+        "losses": 66,
+        "profit_factor": 0.725,
+        "rows": 97,
+        "total_r": -18.15,
+        "win_rate_pct": 31.96,
+        "wins": 31
+      },
+      "BOS_BEAR": {
+        "avg_r": -0.166667,
+        "breakeven": 0,
+        "closed": 18,
+        "losses": 12,
+        "profit_factor": 0.75,
+        "rows": 18,
+        "total_r": -3,
+        "win_rate_pct": 33.33,
+        "wins": 6
+      },
+      "BOS_BULL": {
+        "avg_r": 0,
+        "breakeven": 0,
+        "closed": 20,
+        "losses": 12,
+        "profit_factor": 1,
+        "rows": 20,
+        "total_r": 0,
+        "win_rate_pct": 40,
+        "wins": 8
+      },
+      "BULL_OB_REACTION_CONFIRMED": {
+        "avg_r": 0.111111,
+        "breakeven": 0,
+        "closed": 81,
+        "losses": 45,
+        "profit_factor": 1.2,
+        "rows": 81,
+        "total_r": 9,
+        "win_rate_pct": 44.44,
+        "wins": 36
+      },
+      "INTERNAL_BOS_BEAR": {
+        "avg_r": 0.09375,
+        "breakeven": 0,
+        "closed": 32,
+        "losses": 18,
+        "profit_factor": 1.166667,
+        "rows": 32,
+        "total_r": 3,
+        "win_rate_pct": 43.75,
+        "wins": 14
+      },
+      "INTERNAL_BOS_BULL": {
+        "avg_r": -0.305556,
+        "breakeven": 0,
+        "closed": 18,
+        "losses": 13,
+        "profit_factor": 0.576923,
+        "rows": 18,
+        "total_r": -5.5,
+        "win_rate_pct": 27.78,
+        "wins": 5
+      },
+      "INTERNAL_MSS_BEAR": {
+        "avg_r": 0.034483,
+        "breakeven": 0,
+        "closed": 29,
+        "losses": 17,
+        "profit_factor": 1.058824,
+        "rows": 29,
+        "total_r": 1,
+        "win_rate_pct": 41.38,
+        "wins": 12
+      },
+      "INTERNAL_MSS_BULL": {
+        "avg_r": 0.013514,
+        "breakeven": 0,
+        "closed": 37,
+        "losses": 22,
+        "profit_factor": 1.022727,
+        "rows": 37,
+        "total_r": 0.5,
+        "win_rate_pct": 40.54,
+        "wins": 15
+      },
+      "MSS_BEAR": {
+        "avg_r": 0.354167,
+        "breakeven": 0,
+        "closed": 24,
+        "losses": 11,
+        "profit_factor": 1.772727,
+        "rows": 24,
+        "total_r": 8.5,
+        "win_rate_pct": 54.17,
+        "wins": 13
+      },
+      "MSS_BULL": {
+        "avg_r": 0.25,
+        "breakeven": 0,
+        "closed": 14,
+        "losses": 7,
+        "profit_factor": 1.5,
+        "rows": 14,
+        "total_r": 3.5,
+        "win_rate_pct": 50,
+        "wins": 7
+      }
+    },
+    "overall": {
+      "avg_r": 0.000943,
+      "breakeven": 0,
+      "closed": 371,
+      "losses": 223,
+      "profit_factor": 1.00157,
+      "total_r": 0.35,
+      "win_rate_pct": 39.89,
+      "wins": 148
+    }
+  },
+  "quality_router": {
+    "duplicates_flagged": 15,
+    "grades": {
+      "A": 25,
+      "A_PLUS": 7,
+      "B": 194,
+      "NO_TRADE": 367,
+      "REVIEW": 57
+    },
+    "routes": {
+      "LIVE": 14,
+      "NO_TRADE": 367,
+      "SHADOW": 269
+    },
+    "rows": 650
+  },
+  "safety": {
+    "aggregate_only": true,
+    "alert_changes": false,
+    "broker_actions": false,
+    "database_query_only": true,
+    "database_writes": false,
+    "live_rule_changes": false,
+    "public_summary": true,
+    "routing_changes": false,
+    "service_restarts": false
+  },
+  "scope": {
+    "contains_exact_prices": false,
+    "contains_identifiers": false,
+    "contains_individual_signals": false,
+    "contains_open_positions": false,
+    "dataset": "historical_shadow_outcomes_and_aggregate_server_metrics",
+    "group_minimum_closed": 5,
+    "live_rule_authority": false
+  },
+  "system": {
+    "database_integrity": "ok",
+    "routes_attempted": 30,
+    "routes_failed_or_non_json": 4,
+    "routes_http_200": 29,
+    "routes_json_ok": 26
+  },
+  "v8031_context_warnings": {
+    "closed_outcomes": 1,
+    "grade_counts": {
+      "GREEN": 5,
+      "ORANGE": 5,
+      "RED": 1,
+      "YELLOW": 7
+    },
+    "integrity_failed": 0,
+    "observe_only": true,
+    "performance_by_warning": {
+      "NO_WARNING": {
+        "breakeven": 0,
+        "closed": 0,
+        "losses": 0,
+        "signals": 5,
+        "wins": 0
+      },
+      "WARN_COUNTERTREND_HTF": {
+        "breakeven": 0,
+        "closed": 0,
+        "losses": 0,
+        "signals": 4,
+        "wins": 0
+      },
+      "WARN_STRONG_IMPULSE": {
+        "avg_r": -1,
+        "breakeven": 0,
+        "closed": 1,
+        "losses": 1,
+        "profit_factor": 0,
+        "signals": 6,
+        "total_r": -1,
+        "win_rate_pct": 0,
+        "wins": 0
+      },
+      "WARN_TRANSITION_REGIME": {
+        "breakeven": 0,
+        "closed": 0,
+        "losses": 0,
+        "signals": 10,
+        "wins": 0
+      }
+    },
+    "signals": 18,
+    "signals_with_warning": 13,
+    "signals_without_warning": 5,
+    "warning_code_counts": {
+      "WARN_COUNTERTREND_HTF": 4,
+      "WARN_STRONG_IMPULSE": 6,
+      "WARN_TRANSITION_REGIME": 10
+    }
+  },
+  "version": "V8032.1-PUBLIC-ANALYSIS-SUMMARY-V1"
+}
