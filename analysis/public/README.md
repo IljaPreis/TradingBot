@@ -1,15 +1,15 @@
 # TradingBot Public Analysis Summary
 
-Generated: 2026-07-18 UTC
+Generated: 2026-07-20 UTC
 
 Aggregate, public-safe analysis data only.
 
-- Closed outcomes: 371
-- Win rate: 39.89%
-- Total R: 0.35
-- Average R: 0.000943
-- Profit factor: 1.00157
-- V8031 signals: 18
+- Closed outcomes: 397
+- Win rate: 40.3%
+- Total R: 4.35
+- Average R: 0.010957
+- Profit factor: 1.018354
+- V8031 signals: 65
 - V8031 integrity failures: 0
 
 Excluded: open positions, individual signals, current directions, exact prices,
