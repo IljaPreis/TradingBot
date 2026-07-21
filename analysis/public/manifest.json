@@ -2,15 +2,15 @@
   "files": {
     "README.md": {
       "bytes": 556,
-      "sha256": "8d2d3ceb932a4c989af7a7c4ddb81ad157b2e92c011b91746b34fd5db98e3aec"
+      "sha256": "83ecad3dd63480519769511d986e27645395f32bf0c7c0bcad35875e4e01ded1"
     },
     "history/2026-07-21.json": {
-      "bytes": 16054,
-      "sha256": "91aa5aa7e97d739d17d5e8c0178d39ee2e1f959da3a83504527b5856903b653a"
+      "bytes": 16055,
+      "sha256": "4431cdcc91e06962c1464c90ab85772c545dcab076d2a8ce7aa9250939c8293a"
     },
     "latest.json": {
-      "bytes": 16054,
-      "sha256": "91aa5aa7e97d739d17d5e8c0178d39ee2e1f959da3a83504527b5856903b653a"
+      "bytes": 16055,
+      "sha256": "4431cdcc91e06962c1464c90ab85772c545dcab076d2a8ce7aa9250939c8293a"
     }
   },
   "generated_date_utc": "2026-07-21",

@@ -4,12 +4,12 @@ Generated: 2026-07-21 UTC
 
 Aggregate, public-safe analysis data only.
 
-- Closed outcomes: 477
-- Win rate: 37.74%
-- Total R: -25.65
-- Average R: -0.053774
-- Profit factor: 0.913636
-- V8031 signals: 159
+- Closed outcomes: 518
+- Win rate: 38.03%
+- Total R: -24.15
+- Average R: -0.046622
+- Profit factor: 0.924766
+- V8031 signals: 226
 - V8031 integrity failures: 0
 
 Excluded: open positions, individual signals, current directions, exact prices,
