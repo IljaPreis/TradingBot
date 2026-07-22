@@ -2,17 +2,17 @@
   "files": {
     "README.md": {
       "bytes": 556,
-      "sha256": "83ecad3dd63480519769511d986e27645395f32bf0c7c0bcad35875e4e01ded1"
+      "sha256": "00a3c8115318a52de8975a4fff245ed2b4d89d72e426f01b9d2d1a912bef9cac"
     },
-    "history/2026-07-21.json": {
-      "bytes": 16055,
-      "sha256": "4431cdcc91e06962c1464c90ab85772c545dcab076d2a8ce7aa9250939c8293a"
+    "history/2026-07-22.json": {
+      "bytes": 16038,
+      "sha256": "921e7e0ef31eb10dc8d44aadd66cdc8a9626c9c1a52f440b4d1224d101d4036e"
     },
     "latest.json": {
-      "bytes": 16055,
-      "sha256": "4431cdcc91e06962c1464c90ab85772c545dcab076d2a8ce7aa9250939c8293a"
+      "bytes": 16038,
+      "sha256": "921e7e0ef31eb10dc8d44aadd66cdc8a9626c9c1a52f440b4d1224d101d4036e"
     }
   },
-  "generated_date_utc": "2026-07-21",
+  "generated_date_utc": "2026-07-22",
   "version": "V8032.1-PUBLIC-ANALYSIS-SUMMARY-V1"
 }
