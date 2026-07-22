@@ -1,0 +1,21 @@
+{
+  "version": "V8002-NEWS-WINDOW-POLICY",
+  "enabled": true,
+  "observe_only": true,
+  "enforce": false,
+  "calendar_authority": "economic_calendar_events",
+  "actual_and_headline_authority": "financialjuice",
+  "secondary_calendar_mode": "display_and_healthcheck_only",
+  "timezone": "Europe/Berlin",
+  "high_pre_minutes": 15,
+  "high_post_minutes_confirmed": 15,
+  "high_post_minutes_unconfirmed": 30,
+  "tier1_post_minutes": 30,
+  "medium_pre_minutes": 10,
+  "medium_post_minutes": 10,
+  "low_events_block": false,
+  "medium_events_hard_block": false,
+  "financialjuice_headline_window_minutes": 15,
+  "financialjuice_headlines_hard_block": false,
+  "notes": "Observe-only default. Scheduled high-impact events: 15m before, 15m after when actual confirmed, 30m after when actual is missing or event is Tier-1. FinancialJuice headlines/actuals are used for scoring and confirmation; delayed headlines do not create a pre-event hard block."
+}

@@ -1,0 +1,11 @@
+services:
+  tradingbot:
+    build: .
+    container_name: tradingbot
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data

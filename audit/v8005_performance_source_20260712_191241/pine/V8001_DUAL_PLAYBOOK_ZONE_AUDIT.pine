@@ -1,0 +1,774 @@
+//@version=6
+indicator("V8001 DUAL PLAYBOOK ZONE AUDIT", overlay=true, max_boxes_count=120, max_labels_count=220, max_lines_count=160, max_bars_back=2000)
+
+// ============================================================================
+// V8001 DUAL PLAYBOOK ZONE AUDIT
+// - Hauptsignale auf 15m, Kerzenschluss
+// - Playbook A: HTF-/OB-Zonenreaktion
+// - Playbook B: Session-Momentum via MSS/BOS
+// - FVG/BPR nur Confluence, niemals alleiniger Haupttrigger
+// - Detection ist von Drawing getrennt
+// - Eindeutige Structure-/Zone-/Signal-IDs
+// - Bias: 5m, 15m, 30m, 1H, 4H, 1D, 1W
+// - Kompatible Felder für den bestehenden V7000/V7241-Server
+// ============================================================================
+
+// ------------------------- Inputs -------------------------
+groupBot = "01 BOT / WEBHOOK"
+enableAlerts      = input.bool(true, "Webhook Alerts aktiv", group=groupBot)
+require15m        = input.bool(true, "Handelssignale nur auf 15m", group=groupBot)
+marketOverride    = input.string("AUTO", "Market", options=["AUTO", "US100", "US500", "US30", "GER40", "FRA40", "FTSE100", "ASX200", "JP225", "XAUUSD", "XAGUSD", "USOIL", "BRENT", "BTCUSD", "ETHUSD", "EURUSD", "GBPUSD", "USDJPY", "USDCAD", "AUDUSD", "NZDUSD", "EURGBP", "EURAUD", "GBPAUD", "AUDCAD", "NZDCAD", "EURJPY", "GBPJPY", "AUDJPY", "NZDJPY", "CADJPY", "CHFJPY"], group=groupBot)
+setupPrefix       = input.string("V8001", "Client-ID Prefix", group=groupBot)
+minReviewScore    = input.float(52.0, "Min Score für Alert", minval=0, maxval=100, step=0.5, group=groupBot)
+cooldownBars      = input.int(3, "Global Cooldown Bars", minval=0, maxval=50, group=groupBot)
+allowLong         = input.bool(true, "Long erlauben", group=groupBot)
+allowShort        = input.bool(true, "Short erlauben", group=groupBot)
+
+groupVisual = "02 VISUALS"
+showEMAs          = input.bool(true, "EMA 20/50/200", group=groupVisual)
+showVWAP          = input.bool(true, "VWAP", group=groupVisual)
+showOB            = input.bool(true, "15m Orderblocks zeichnen", group=groupVisual)
+showFVG           = input.bool(false, "15m FVG zeichnen", group=groupVisual)
+showHTFZones      = input.bool(true, "4H/1D Pivot-Zonen zeichnen", group=groupVisual)
+showStructure     = input.bool(true, "MSS/BOS markieren", group=groupVisual)
+showDashboard     = input.bool(true, "Dashboard", group=groupVisual)
+zoneExtendBars    = input.int(80, "Zonen nach rechts", minval=10, maxval=300, group=groupVisual)
+maxZonesPerSide   = input.int(4, "Max OB je Richtung", minval=1, maxval=10, group=groupVisual)
+
+groupStructure = "03 STRUCTURE / ZONES"
+mainPivotLen      = input.int(4, "Main Pivot Länge", minval=2, maxval=20, group=groupStructure)
+internalPivotLen  = input.int(2, "Internal Pivot Länge", minval=2, maxval=10, group=groupStructure)
+obLookback        = input.int(10, "OB Suchbereich", minval=2, maxval=40, group=groupStructure)
+minFvgAtr         = input.float(0.10, "Min FVG Größe ATR", minval=0.01, maxval=1.5, step=0.01, group=groupStructure)
+zoneAtrPadding    = input.float(0.25, "HTF Pivot-Zonen Breite ATR", minval=0.05, maxval=1.0, step=0.05, group=groupStructure)
+requireDisplacement = input.bool(true, "OB braucht Displacement", group=groupStructure)
+displacementAtr   = input.float(0.80, "Displacement Mindestgröße ATR", minval=0.2, maxval=3.0, step=0.05, group=groupStructure)
+
+groupFilters = "04 ENTRY FILTER"
+useVWAPFilter     = input.bool(true, "VWAP im Momentum-Playbook", group=groupFilters)
+maxChaseAtr       = input.float(1.60, "Max Chase Abstand EMA20/VWAP ATR", minval=0.2, maxval=5.0, step=0.05, group=groupFilters)
+atrLen            = input.int(14, "ATR Länge", minval=5, maxval=100, group=groupFilters)
+rrTarget          = input.float(1.5, "TP R-Multiple", minval=0.5, maxval=5.0, step=0.1, group=groupFilters)
+volLen            = input.int(30, "Volume SMA", minval=5, maxval=200, group=groupFilters)
+volSpikeMult      = input.float(1.5, "Volume Spike", minval=1.0, maxval=5.0, step=0.1, group=groupFilters)
+
+groupSession = "05 SESSION"
+tzInput           = input.string("Europe/Berlin", "Zeitzone", group=groupSession)
+sessionOverride   = input.string("AUTO", "Session Override", options=["AUTO", "ASIA", "EU", "NY", "LATE"], group=groupSession)
+
+// ------------------------- Helpers -------------------------
+f_num(float x) => na(x) ? "null" : str.tostring(x, "#.########")
+f_int(int x) => na(x) ? "null" : str.tostring(x)
+f_bool(bool x) => x ? "true" : "false"
+f_q(string x) => "\"" + str.replace_all(x, "\"", "'") + "\""
+f_clamp(float x, float lo, float hi) => math.max(lo, math.min(hi, x))
+
+f_market() =>
+    string t = str.upper(syminfo.ticker)
+    string tid = str.upper(syminfo.tickerid)
+    string d = str.upper(syminfo.description)
+    string s = t + "|" + tid + "|" + d
+    marketOverride != "AUTO" ? marketOverride :
+     str.contains(s, "US100") or str.contains(s, "NAS100") or str.contains(s, "USTEC") or str.contains(s, "NASDAQ") or str.contains(s, "NDX") ? "US100" :
+     str.contains(s, "US500") or str.contains(s, "SPX500") or str.contains(s, "SP500") or str.contains(s, "S&P") or str.contains(s, "SPX") or str.contains(s, "ES1") ? "US500" :
+     str.contains(s, "US30") or str.contains(s, "DJI") or str.contains(s, "DOW") or str.contains(s, "YM1") ? "US30" :
+     str.contains(s, "GER40") or str.contains(s, "DE40") or str.contains(s, "DAX") ? "GER40" :
+     str.contains(s, "FRA40") or str.contains(s, "CAC") ? "FRA40" :
+     str.contains(s, "FTSE") or str.contains(s, "UK100") ? "FTSE100" :
+     str.contains(s, "ASX") or str.contains(s, "AU200") ? "ASX200" :
+     str.contains(s, "JP225") or str.contains(s, "NIKKEI") ? "JP225" :
+     str.contains(s, "XAU") or str.contains(s, "GOLD") ? "XAUUSD" :
+     str.contains(s, "XAG") or str.contains(s, "SILVER") ? "XAGUSD" :
+     str.contains(s, "BTC") ? "BTCUSD" :
+     str.contains(s, "ETH") ? "ETHUSD" :
+     str.contains(s, "USOIL") or str.contains(s, "WTI") ? "USOIL" :
+     str.contains(s, "UKOIL") or str.contains(s, "BRENT") ? "BRENT" :
+     str.contains(s, "EURUSD") ? "EURUSD" : str.contains(s, "GBPUSD") ? "GBPUSD" :
+     str.contains(s, "USDJPY") ? "USDJPY" : str.contains(s, "USDCAD") ? "USDCAD" :
+     str.contains(s, "AUDUSD") ? "AUDUSD" : str.contains(s, "NZDUSD") ? "NZDUSD" :
+     str.contains(s, "EURGBP") ? "EURGBP" : str.contains(s, "EURAUD") ? "EURAUD" :
+     str.contains(s, "GBPAUD") ? "GBPAUD" : str.contains(s, "AUDCAD") ? "AUDCAD" :
+     str.contains(s, "NZDCAD") ? "NZDCAD" : str.contains(s, "EURJPY") ? "EURJPY" :
+     str.contains(s, "GBPJPY") ? "GBPJPY" : str.contains(s, "AUDJPY") ? "AUDJPY" :
+     str.contains(s, "NZDJPY") ? "NZDJPY" : str.contains(s, "CADJPY") ? "CADJPY" :
+     str.contains(s, "CHFJPY") ? "CHFJPY" : syminfo.ticker
+
+f_session() =>
+    if sessionOverride != "AUTO"
+        sessionOverride
+    else
+        int h = hour(time, tzInput)
+        h >= 23 or h < 8 ? "ASIA" : h >= 8 and h < 14 ? "EU" : h >= 14 and h < 22 ? "NY" : "LATE"
+
+f_bias(float c, float e20, float e50, float e200) =>
+    c > e200 and e20 > e50 ? "bullish" : c < e200 and e20 < e50 ? "bearish" : "neutral"
+
+f_combine(string a, string b) =>
+    a == b ? a : a == "neutral" ? b : b == "neutral" ? a : "mixed"
+
+f_add_conf(string base, bool cond, string tag) =>
+    cond ? (str.length(base) == 0 ? tag : base + "|" + tag) : base
+
+f_last_bear_offset(int maxBars) =>
+    int off = na
+    int i = 1
+    while i <= maxBars and na(off)
+        if close[i] < open[i]
+            off := i
+        i += 1
+    off
+
+f_last_bull_offset(int maxBars) =>
+    int off = na
+    int i = 1
+    while i <= maxBars and na(off)
+        if close[i] > open[i]
+            off := i
+        i += 1
+    off
+
+f_tf_pack() =>
+    [close, ta.ema(close, 20), ta.ema(close, 50), ta.ema(close, 200)]
+
+f_tf_zones(int pLen, float widthAtr) =>
+    float ph = ta.pivothigh(high, pLen, pLen)
+    float pl = ta.pivotlow(low, pLen, pLen)
+    float lastPh = ta.valuewhen(not na(ph), ph, 0)
+    float lastPl = ta.valuewhen(not na(pl), pl, 0)
+    float a = ta.atr(14)
+    [lastPl + a * widthAtr, lastPl - a * widthAtr, lastPh + a * widthAtr, lastPh - a * widthAtr]
+
+// ------------------------- Core series -------------------------
+string marketName = f_market()
+string sessionNow = f_session()
+bool chartIs15m = timeframe.period == "15"
+
+float ema20 = ta.ema(close, 20)
+float ema50 = ta.ema(close, 50)
+float ema200 = ta.ema(close, 200)
+float vwap = ta.vwap(hlc3)
+float atr = ta.atr(atrLen)
+float volSma = ta.sma(volume, volLen)
+float relVolume = not na(volSma) and volSma > 0 ? volume / volSma : 1.0
+bool volSpike = not na(volSma) and volume >= volSma * volSpikeMult
+float candleRangeAtr = atr > 0 ? (high - low) / atr : 0.0
+float bodyAtr = atr > 0 ? math.abs(close - open) / atr : 0.0
+float lowerWick = math.min(open, close) - low
+float upperWick = high - math.max(open, close)
+bool bullReject = close > open and lowerWick > math.abs(close - open) * 0.6
+bool bearReject = close < open and upperWick > math.abs(close - open) * 0.6
+float meanDistAtr = atr > 0 ? math.min(math.abs(close - ema20), math.abs(close - vwap)) / atr : 0.0
+bool chaseBlocked = meanDistAtr > maxChaseAtr
+
+// ------------------------- Multi-timeframe bias -------------------------
+[c5, e205, e505, e2005] = request.security(syminfo.tickerid, "5", f_tf_pack(), lookahead=barmerge.lookahead_off)
+[c15, e2015, e5015, e20015] = request.security(syminfo.tickerid, "15", f_tf_pack(), lookahead=barmerge.lookahead_off)
+[c30, e2030, e5030, e20030] = request.security(syminfo.tickerid, "30", f_tf_pack(), lookahead=barmerge.lookahead_off)
+[c1h, e201h, e501h, e2001h] = request.security(syminfo.tickerid, "60", f_tf_pack(), lookahead=barmerge.lookahead_off)
+[c4h, e204h, e504h, e2004h] = request.security(syminfo.tickerid, "240", f_tf_pack(), lookahead=barmerge.lookahead_off)
+[c1d, e201d, e501d, e2001d] = request.security(syminfo.tickerid, "D", f_tf_pack(), lookahead=barmerge.lookahead_off)
+[c1w, e201w, e501w, e2001w] = request.security(syminfo.tickerid, "W", f_tf_pack(), lookahead=barmerge.lookahead_off)
+
+string bias5m = f_bias(c5, e205, e505, e2005)
+string bias15m = f_bias(c15, e2015, e5015, e20015)
+string bias30m = f_bias(c30, e2030, e5030, e20030)
+string bias1h = f_bias(c1h, e201h, e501h, e2001h)
+string bias4h = f_bias(c4h, e204h, e504h, e2004h)
+string bias1d = f_bias(c1d, e201d, e501d, e2001d)
+string bias1w = f_bias(c1w, e201w, e501w, e2001w)
+string entryLayerBias = f_combine(bias5m, bias15m)
+string tacticalLayerBias = f_combine(bias30m, bias1h)
+string htfLayerBias = f_combine(bias4h, bias1d)
+string regimeBias = bias1w
+
+[d4Top, d4Bot, s4Top, s4Bot] = request.security(syminfo.tickerid, "240", f_tf_zones(3, zoneAtrPadding), lookahead=barmerge.lookahead_off)
+[d1Top, d1Bot, s1Top, s1Bot] = request.security(syminfo.tickerid, "D", f_tf_zones(3, zoneAtrPadding), lookahead=barmerge.lookahead_off)
+
+bool touch4hDemand = not na(d4Top) and low <= d4Top and high >= d4Bot
+bool touch4hSupply = not na(s4Top) and low <= s4Top and high >= s4Bot
+bool touch1dDemand = not na(d1Top) and low <= d1Top and high >= d1Bot
+bool touch1dSupply = not na(s1Top) and low <= s1Top and high >= s1Bot
+
+string d4DemandId = not na(d4Bot) ? marketName + "_4H_DEMAND_" + str.tostring(d4Bot, format.mintick) : ""
+string d4SupplyId = not na(s4Top) ? marketName + "_4H_SUPPLY_" + str.tostring(s4Top, format.mintick) : ""
+string d1DemandId = not na(d1Bot) ? marketName + "_1D_DEMAND_" + str.tostring(d1Bot, format.mintick) : ""
+string d1SupplyId = not na(s1Top) ? marketName + "_1D_SUPPLY_" + str.tostring(s1Top, format.mintick) : ""
+
+var string trackedD4DemandId = ""
+var string trackedD4SupplyId = ""
+var string trackedD1DemandId = ""
+var string trackedD1SupplyId = ""
+var int d4DemandTouchCount = 0
+var int d4SupplyTouchCount = 0
+var int d1DemandTouchCount = 0
+var int d1SupplyTouchCount = 0
+var bool d4DemandPrevTouch = false
+var bool d4SupplyPrevTouch = false
+var bool d1DemandPrevTouch = false
+var bool d1SupplyPrevTouch = false
+
+if d4DemandId != trackedD4DemandId
+    trackedD4DemandId := d4DemandId
+    d4DemandTouchCount := 0
+    d4DemandPrevTouch := false
+if d4SupplyId != trackedD4SupplyId
+    trackedD4SupplyId := d4SupplyId
+    d4SupplyTouchCount := 0
+    d4SupplyPrevTouch := false
+if d1DemandId != trackedD1DemandId
+    trackedD1DemandId := d1DemandId
+    d1DemandTouchCount := 0
+    d1DemandPrevTouch := false
+if d1SupplyId != trackedD1SupplyId
+    trackedD1SupplyId := d1SupplyId
+    d1SupplyTouchCount := 0
+    d1SupplyPrevTouch := false
+
+if touch4hDemand and not d4DemandPrevTouch
+    d4DemandTouchCount += 1
+if touch4hSupply and not d4SupplyPrevTouch
+    d4SupplyTouchCount += 1
+if touch1dDemand and not d1DemandPrevTouch
+    d1DemandTouchCount += 1
+if touch1dSupply and not d1SupplyPrevTouch
+    d1SupplyTouchCount += 1
+
+d4DemandPrevTouch := touch4hDemand
+d4SupplyPrevTouch := touch4hSupply
+d1DemandPrevTouch := touch1dDemand
+d1SupplyPrevTouch := touch1dSupply
+
+// ------------------------- Main structure -------------------------
+float ph = ta.pivothigh(high, mainPivotLen, mainPivotLen)
+float pl = ta.pivotlow(low, mainPivotLen, mainPivotLen)
+var float lastSwingHigh = na
+var float lastSwingLow = na
+var int lastSwingHighBar = na
+var int lastSwingLowBar = na
+if not na(ph)
+    lastSwingHigh := ph
+    lastSwingHighBar := bar_index - mainPivotLen
+if not na(pl)
+    lastSwingLow := pl
+    lastSwingLowBar := bar_index - mainPivotLen
+
+var int structureDir = 0
+bool bullishBreak = not na(lastSwingHigh) and close > lastSwingHigh and close[1] <= lastSwingHigh
+bool bearishBreak = not na(lastSwingLow) and close < lastSwingLow and close[1] >= lastSwingLow
+bool bullishMSS = bullishBreak and structureDir == -1
+bool bearishMSS = bearishBreak and structureDir == 1
+bool bullishBOS = bullishBreak and structureDir != -1
+bool bearishBOS = bearishBreak and structureDir != 1
+if bullishBreak
+    structureDir := 1
+if bearishBreak
+    structureDir := -1
+
+// Internal structure
+float iph = ta.pivothigh(high, internalPivotLen, internalPivotLen)
+float ipl = ta.pivotlow(low, internalPivotLen, internalPivotLen)
+var float iLastHigh = na
+var float iLastLow = na
+var int iStructureDir = 0
+if not na(iph)
+    iLastHigh := iph
+if not na(ipl)
+    iLastLow := ipl
+bool iBullBreak = not na(iLastHigh) and close > iLastHigh and close[1] <= iLastHigh
+bool iBearBreak = not na(iLastLow) and close < iLastLow and close[1] >= iLastLow
+bool iBullMSS = iBullBreak and iStructureDir == -1
+bool iBearMSS = iBearBreak and iStructureDir == 1
+bool iBullBOS = iBullBreak and iStructureDir != -1
+bool iBearBOS = iBearBreak and iStructureDir != 1
+if iBullBreak
+    iStructureDir := 1
+if iBearBreak
+    iStructureDir := -1
+
+var int structureEventId = 0
+if bullishBreak or bearishBreak or iBullBreak or iBearBreak
+    structureEventId += 1
+
+string structureState = bullishMSS ? "mss_bull" : bearishMSS ? "mss_bear" : bullishBOS ? "bos_bull" : bearishBOS ? "bos_bear" : structureDir == 1 ? "bullish" : structureDir == -1 ? "bearish" : "neutral"
+string internalState = iBullMSS ? "internal_mss_bull" : iBearMSS ? "internal_mss_bear" : iBullBOS ? "internal_bos_bull" : iBearBOS ? "internal_bos_bear" : iStructureDir == 1 ? "internal_bullish" : iStructureDir == -1 ? "internal_bearish" : "internal_neutral"
+
+// Liquidity sweeps
+bool sweepHigh = not na(lastSwingHigh) and high > lastSwingHigh and close < lastSwingHigh
+bool sweepLow = not na(lastSwingLow) and low < lastSwingLow and close > lastSwingLow
+string liquidityState = sweepLow ? "sweep_low" : sweepHigh ? "sweep_high" : "none"
+
+// ------------------------- 15m Orderblock storage -------------------------
+var array<float> bullObTops = array.new_float()
+var array<float> bullObBots = array.new_float()
+var array<string> bullObIds = array.new_string()
+var array<int> bullObTouches = array.new_int()
+var array<int> bullObCreatedBars = array.new_int()
+var array<bool> bullObPrevTouch = array.new_bool()
+var array<box> bullObBoxes = array.new_box()
+
+var array<float> bearObTops = array.new_float()
+var array<float> bearObBots = array.new_float()
+var array<string> bearObIds = array.new_string()
+var array<int> bearObTouches = array.new_int()
+var array<int> bearObCreatedBars = array.new_int()
+var array<bool> bearObPrevTouch = array.new_bool()
+var array<box> bearObBoxes = array.new_box()
+
+bool displacementOk = not requireDisplacement or candleRangeAtr >= displacementAtr
+if barstate.isconfirmed and bullishBreak and displacementOk
+    int off = f_last_bear_offset(obLookback)
+    if not na(off)
+        float top = high[off]
+        float bot = low[off]
+        string zid = marketName + "_15M_BULL_OB_" + str.tostring(time[off])
+        box bx = na
+        if showOB
+            bx := box.new(bar_index - off, top, bar_index + zoneExtendBars, bot, bgcolor=color.new(color.green, 86), border_color=color.new(color.green, 20), text="BULL OB")
+        array.push(bullObTops, top)
+        array.push(bullObBots, bot)
+        array.push(bullObIds, zid)
+        array.push(bullObTouches, 0)
+        array.push(bullObCreatedBars, bar_index)
+        array.push(bullObPrevTouch, false)
+        array.push(bullObBoxes, bx)
+        while array.size(bullObTops) > maxZonesPerSide
+            box old = array.shift(bullObBoxes)
+            if not na(old)
+                box.delete(old)
+            array.shift(bullObTops)
+            array.shift(bullObBots)
+            array.shift(bullObIds)
+            array.shift(bullObTouches)
+            array.shift(bullObCreatedBars)
+            array.shift(bullObPrevTouch)
+
+if barstate.isconfirmed and bearishBreak and displacementOk
+    int off = f_last_bull_offset(obLookback)
+    if not na(off)
+        float top = high[off]
+        float bot = low[off]
+        string zid = marketName + "_15M_BEAR_OB_" + str.tostring(time[off])
+        box bx = na
+        if showOB
+            bx := box.new(bar_index - off, top, bar_index + zoneExtendBars, bot, bgcolor=color.new(color.red, 86), border_color=color.new(color.red, 20), text="BEAR OB")
+        array.push(bearObTops, top)
+        array.push(bearObBots, bot)
+        array.push(bearObIds, zid)
+        array.push(bearObTouches, 0)
+        array.push(bearObCreatedBars, bar_index)
+        array.push(bearObPrevTouch, false)
+        array.push(bearObBoxes, bx)
+        while array.size(bearObTops) > maxZonesPerSide
+            box old = array.shift(bearObBoxes)
+            if not na(old)
+                box.delete(old)
+            array.shift(bearObTops)
+            array.shift(bearObBots)
+            array.shift(bearObIds)
+            array.shift(bearObTouches)
+            array.shift(bearObCreatedBars)
+            array.shift(bearObPrevTouch)
+
+bool bullObFirstTouch = false
+bool bearObFirstTouch = false
+float touchedBullObTop = na
+float touchedBullObBot = na
+float touchedBearObTop = na
+float touchedBearObBot = na
+string touchedBullObId = ""
+string touchedBearObId = ""
+int touchedBullObCount = 0
+int touchedBearObCount = 0
+
+int bi = array.size(bullObTops) - 1
+while bi >= 0
+    float top = array.get(bullObTops, bi)
+    float bot = array.get(bullObBots, bi)
+    box bx = array.get(bullObBoxes, bi)
+    bool invalid = close < bot
+    if invalid
+        if not na(bx)
+            box.delete(bx)
+        array.remove(bullObTops, bi)
+        array.remove(bullObBots, bi)
+        array.remove(bullObIds, bi)
+        array.remove(bullObTouches, bi)
+        array.remove(bullObCreatedBars, bi)
+        array.remove(bullObPrevTouch, bi)
+        array.remove(bullObBoxes, bi)
+    else
+        if not na(bx)
+            box.set_right(bx, bar_index + zoneExtendBars)
+        int createdBar = array.get(bullObCreatedBars, bi)
+        bool touchNow = bar_index > createdBar and low <= top and high >= bot
+        bool prevTouch = array.get(bullObPrevTouch, bi)
+        int count = array.get(bullObTouches, bi)
+        if touchNow and not prevTouch
+            count += 1
+            array.set(bullObTouches, bi, count)
+            if count == 1 and not bullObFirstTouch
+                bullObFirstTouch := true
+                touchedBullObTop := top
+                touchedBullObBot := bot
+                touchedBullObId := array.get(bullObIds, bi)
+                touchedBullObCount := count
+        array.set(bullObPrevTouch, bi, touchNow)
+    bi -= 1
+
+int si = array.size(bearObTops) - 1
+while si >= 0
+    float top = array.get(bearObTops, si)
+    float bot = array.get(bearObBots, si)
+    box bx = array.get(bearObBoxes, si)
+    bool invalid = close > top
+    if invalid
+        if not na(bx)
+            box.delete(bx)
+        array.remove(bearObTops, si)
+        array.remove(bearObBots, si)
+        array.remove(bearObIds, si)
+        array.remove(bearObTouches, si)
+        array.remove(bearObCreatedBars, si)
+        array.remove(bearObPrevTouch, si)
+        array.remove(bearObBoxes, si)
+    else
+        if not na(bx)
+            box.set_right(bx, bar_index + zoneExtendBars)
+        int createdBar = array.get(bearObCreatedBars, si)
+        bool touchNow = bar_index > createdBar and low <= top and high >= bot
+        bool prevTouch = array.get(bearObPrevTouch, si)
+        int count = array.get(bearObTouches, si)
+        if touchNow and not prevTouch
+            count += 1
+            array.set(bearObTouches, si, count)
+            if count == 1 and not bearObFirstTouch
+                bearObFirstTouch := true
+                touchedBearObTop := top
+                touchedBearObBot := bot
+                touchedBearObId := array.get(bearObIds, si)
+                touchedBearObCount := count
+        array.set(bearObPrevTouch, si, touchNow)
+    si -= 1
+
+// ------------------------- FVG + BPR (Confluence only) -------------------------
+var float bullFvgTop = na
+var float bullFvgBot = na
+var string bullFvgId = ""
+var int bullFvgCreatedBar = na
+var bool bullFvgPrevTouch = false
+var int bullFvgTouchCount = 0
+var box bullFvgBox = na
+
+var float bearFvgTop = na
+var float bearFvgBot = na
+var string bearFvgId = ""
+var int bearFvgCreatedBar = na
+var bool bearFvgPrevTouch = false
+var int bearFvgTouchCount = 0
+var box bearFvgBox = na
+
+bool newBullFvg = low > high[2] and atr > 0 and (low - high[2]) / atr >= minFvgAtr
+bool newBearFvg = high < low[2] and atr > 0 and (low[2] - high) / atr >= minFvgAtr
+if barstate.isconfirmed and newBullFvg
+    bullFvgTop := low
+    bullFvgBot := high[2]
+    bullFvgId := marketName + "_15M_BULL_FVG_" + str.tostring(time)
+    bullFvgCreatedBar := bar_index
+    bullFvgPrevTouch := false
+    bullFvgTouchCount := 0
+    if not na(bullFvgBox)
+        box.delete(bullFvgBox)
+    bullFvgBox := showFVG ? box.new(bar_index - 2, bullFvgTop, bar_index + zoneExtendBars, bullFvgBot, bgcolor=color.new(color.teal, 88), border_color=color.new(color.teal, 30)) : na
+if barstate.isconfirmed and newBearFvg
+    bearFvgTop := low[2]
+    bearFvgBot := high
+    bearFvgId := marketName + "_15M_BEAR_FVG_" + str.tostring(time)
+    bearFvgCreatedBar := bar_index
+    bearFvgPrevTouch := false
+    bearFvgTouchCount := 0
+    if not na(bearFvgBox)
+        box.delete(bearFvgBox)
+    bearFvgBox := showFVG ? box.new(bar_index - 2, bearFvgTop, bar_index + zoneExtendBars, bearFvgBot, bgcolor=color.new(color.orange, 88), border_color=color.new(color.orange, 30)) : na
+
+bool bullFvgActive = not na(bullFvgTop) and close > bullFvgBot
+bool bearFvgActive = not na(bearFvgTop) and close < bearFvgTop
+if not bullFvgActive and not na(bullFvgBox)
+    box.delete(bullFvgBox)
+    bullFvgBox := na
+if not bearFvgActive and not na(bearFvgBox)
+    box.delete(bearFvgBox)
+    bearFvgBox := na
+if bullFvgActive and not na(bullFvgBox)
+    box.set_right(bullFvgBox, bar_index + zoneExtendBars)
+if bearFvgActive and not na(bearFvgBox)
+    box.set_right(bearFvgBox, bar_index + zoneExtendBars)
+
+bool bullFvgTouchNow = bullFvgActive and bar_index > nz(bullFvgCreatedBar, bar_index) and low <= bullFvgTop and high >= bullFvgBot
+bool bearFvgTouchNow = bearFvgActive and bar_index > nz(bearFvgCreatedBar, bar_index) and low <= bearFvgTop and high >= bearFvgBot
+bool bullFvgFirstTouch = bullFvgTouchNow and not bullFvgPrevTouch and bullFvgTouchCount == 0
+bool bearFvgFirstTouch = bearFvgTouchNow and not bearFvgPrevTouch and bearFvgTouchCount == 0
+if bullFvgTouchNow and not bullFvgPrevTouch
+    bullFvgTouchCount += 1
+if bearFvgTouchNow and not bearFvgPrevTouch
+    bearFvgTouchCount += 1
+bullFvgPrevTouch := bullFvgTouchNow
+bearFvgPrevTouch := bearFvgTouchNow
+
+float bprTop = bullFvgActive and bearFvgActive ? math.min(bullFvgTop, bearFvgTop) : na
+float bprBot = bullFvgActive and bearFvgActive ? math.max(bullFvgBot, bearFvgBot) : na
+bool bprValid = not na(bprTop) and not na(bprBot) and bprTop > bprBot
+bool bprTouch = bprValid and low <= bprTop and high >= bprBot
+
+// ------------------------- Dual Playbooks -------------------------
+bool longZoneTouch = bullObFirstTouch or touch4hDemand or touch1dDemand
+bool shortZoneTouch = bearObFirstTouch or touch4hSupply or touch1dSupply
+bool longReaction = sweepLow or bullishMSS or iBullMSS or bullReject
+bool shortReaction = sweepHigh or bearishMSS or iBearMSS or bearReject
+bool longPlaybookA = longZoneTouch and longReaction and not chaseBlocked
+bool shortPlaybookA = shortZoneTouch and shortReaction and not chaseBlocked
+
+bool longStructureNow = bullishMSS or bullishBOS or iBullMSS or iBullBOS
+bool shortStructureNow = bearishMSS or bearishBOS or iBearMSS or iBearBOS
+bool longMomentumContext = bias15m != "bearish" and tacticalLayerBias != "bearish" and close > ema20 and (not useVWAPFilter or close > vwap)
+bool shortMomentumContext = bias15m != "bullish" and tacticalLayerBias != "bullish" and close < ema20 and (not useVWAPFilter or close < vwap)
+bool longPlaybookB = longStructureNow and longMomentumContext and not chaseBlocked
+bool shortPlaybookB = shortStructureNow and shortMomentumContext and not chaseBlocked
+
+float longScore = 45.0
+float shortScore = 45.0
+longScore += longPlaybookA ? 14 : 0
+shortScore += shortPlaybookA ? 14 : 0
+longScore += longPlaybookB ? 10 : 0
+shortScore += shortPlaybookB ? 10 : 0
+longScore += bullishMSS or iBullMSS ? 8 : bullishBOS or iBullBOS ? 5 : 0
+shortScore += bearishMSS or iBearMSS ? 8 : bearishBOS or iBearBOS ? 5 : 0
+longScore += sweepLow ? 5 : 0
+shortScore += sweepHigh ? 5 : 0
+longScore += bullObFirstTouch ? 5 : 0
+shortScore += bearObFirstTouch ? 5 : 0
+longScore += touch4hDemand or touch1dDemand ? 4 : 0
+shortScore += touch4hSupply or touch1dSupply ? 4 : 0
+longScore += bullFvgFirstTouch ? 2 : 0
+shortScore += bearFvgFirstTouch ? 2 : 0
+longScore += bprTouch ? 1 : 0
+shortScore += bprTouch ? 1 : 0
+longScore += bias15m == "bullish" ? 3 : bias15m == "bearish" ? -4 : 0
+shortScore += bias15m == "bearish" ? 3 : bias15m == "bullish" ? -4 : 0
+longScore += tacticalLayerBias == "bullish" ? 3 : tacticalLayerBias == "bearish" ? -4 : 0
+shortScore += tacticalLayerBias == "bearish" ? 3 : tacticalLayerBias == "bullish" ? -4 : 0
+longScore += htfLayerBias == "bullish" ? 2 : htfLayerBias == "bearish" and not longPlaybookA ? -5 : 0
+shortScore += htfLayerBias == "bearish" ? 2 : htfLayerBias == "bullish" and not shortPlaybookA ? -5 : 0
+longScore += regimeBias == "bearish" ? -2 : regimeBias == "bullish" ? 1 : 0
+shortScore += regimeBias == "bullish" ? -2 : regimeBias == "bearish" ? 1 : 0
+longScore += volSpike ? 2 : 0
+shortScore += volSpike ? 2 : 0
+longScore += chaseBlocked ? -12 : 0
+shortScore += chaseBlocked ? -12 : 0
+longScore := f_clamp(longScore, 0, 100)
+shortScore := f_clamp(shortScore, 0, 100)
+
+string longPlaybook = longPlaybookA ? "PLAYBOOK_A_HTF_OB_REACTION" : longPlaybookB ? "PLAYBOOK_B_SESSION_MOMENTUM" : "NO_PLAYBOOK"
+string shortPlaybook = shortPlaybookA ? "PLAYBOOK_A_HTF_OB_REACTION" : shortPlaybookB ? "PLAYBOOK_B_SESSION_MOMENTUM" : "NO_PLAYBOOK"
+string longPrimary = longPlaybookA ? "OB_REACTION_LONG" : bullishMSS or iBullMSS ? "MSS_BULL" : bullishBOS or iBullBOS ? "BOS_BULL" : "NONE"
+string shortPrimary = shortPlaybookA ? "OB_REACTION_SHORT" : bearishMSS or iBearMSS ? "MSS_BEAR" : bearishBOS or iBearBOS ? "BOS_BEAR" : "NONE"
+string longSetup = longPlaybookA ? "BULL_OB_REACTION_CONFIRMED" : bullishMSS ? "MSS_BULL" : iBullMSS ? "INTERNAL_MSS_BULL" : bullishBOS ? "BOS_BULL" : "INTERNAL_BOS_BULL"
+string shortSetup = shortPlaybookA ? "BEAR_OB_REACTION_CONFIRMED" : bearishMSS ? "MSS_BEAR" : iBearMSS ? "INTERNAL_MSS_BEAR" : bearishBOS ? "BOS_BEAR" : "INTERNAL_BOS_BEAR"
+
+string longConf = ""
+longConf := f_add_conf(longConf, bullObFirstTouch, "BULL_OB_FIRST_TOUCH")
+longConf := f_add_conf(longConf, touch4hDemand, "4H_DEMAND_TOUCH")
+longConf := f_add_conf(longConf, touch1dDemand, "1D_DEMAND_TOUCH")
+longConf := f_add_conf(longConf, sweepLow, "SWEEP_LOW")
+longConf := f_add_conf(longConf, bullishMSS or iBullMSS, "MSS_BULL")
+longConf := f_add_conf(longConf, bullishBOS or iBullBOS, "BOS_BULL")
+longConf := f_add_conf(longConf, bullFvgFirstTouch, "BULL_FVG_FIRST_TOUCH")
+longConf := f_add_conf(longConf, bprTouch, "BPR_TOUCH")
+longConf := f_add_conf(longConf, volSpike, "VOLUME_SPIKE")
+
+string shortConf = ""
+shortConf := f_add_conf(shortConf, bearObFirstTouch, "BEAR_OB_FIRST_TOUCH")
+shortConf := f_add_conf(shortConf, touch4hSupply, "4H_SUPPLY_TOUCH")
+shortConf := f_add_conf(shortConf, touch1dSupply, "1D_SUPPLY_TOUCH")
+shortConf := f_add_conf(shortConf, sweepHigh, "SWEEP_HIGH")
+shortConf := f_add_conf(shortConf, bearishMSS or iBearMSS, "MSS_BEAR")
+shortConf := f_add_conf(shortConf, bearishBOS or iBearBOS, "BOS_BEAR")
+shortConf := f_add_conf(shortConf, bearFvgFirstTouch, "BEAR_FVG_FIRST_TOUCH")
+shortConf := f_add_conf(shortConf, bprTouch, "BPR_TOUCH")
+shortConf := f_add_conf(shortConf, volSpike, "VOLUME_SPIKE")
+
+float longZoneTop = bullObFirstTouch ? touchedBullObTop : touch1dDemand ? d1Top : touch4hDemand ? d4Top : na
+float longZoneBot = bullObFirstTouch ? touchedBullObBot : touch1dDemand ? d1Bot : touch4hDemand ? d4Bot : na
+string longZoneId = bullObFirstTouch ? touchedBullObId : touch1dDemand ? d1DemandId : touch4hDemand ? d4DemandId : ""
+string longZoneTf = bullObFirstTouch ? "15" : touch1dDemand ? "1D" : touch4hDemand ? "4H" : ""
+int longTouchCount = bullObFirstTouch ? touchedBullObCount : touch1dDemand ? d1DemandTouchCount : touch4hDemand ? d4DemandTouchCount : 0
+
+float shortZoneTop = bearObFirstTouch ? touchedBearObTop : touch1dSupply ? s1Top : touch4hSupply ? s4Top : na
+float shortZoneBot = bearObFirstTouch ? touchedBearObBot : touch1dSupply ? s1Bot : touch4hSupply ? s4Bot : na
+string shortZoneId = bearObFirstTouch ? touchedBearObId : touch1dSupply ? d1SupplyId : touch4hSupply ? d4SupplyId : ""
+string shortZoneTf = bearObFirstTouch ? "15" : touch1dSupply ? "1D" : touch4hSupply ? "4H" : ""
+int shortTouchCount = bearObFirstTouch ? touchedBearObCount : touch1dSupply ? d1SupplyTouchCount : touch4hSupply ? d4SupplyTouchCount : 0
+
+float longSLBase = not na(longZoneBot) ? longZoneBot : not na(lastSwingLow) ? lastSwingLow : close - atr
+float shortSLBase = not na(shortZoneTop) ? shortZoneTop : not na(lastSwingHigh) ? lastSwingHigh : close + atr
+float longSL = longSLBase - atr * 0.10
+float shortSL = shortSLBase + atr * 0.10
+float longRisk = math.max(close - longSL, syminfo.mintick)
+float shortRisk = math.max(shortSL - close, syminfo.mintick)
+float longTP = close + longRisk * rrTarget
+float shortTP = close - shortRisk * rrTarget
+
+bool timeframeGate = not require15m or chartIs15m
+bool longCandidate = allowLong and timeframeGate and (longPlaybookA or longPlaybookB) and longScore >= minReviewScore
+bool shortCandidate = allowShort and timeframeGate and (shortPlaybookA or shortPlaybookB) and shortScore >= minReviewScore
+
+var int lastAlertBar = na
+var string lastLongEvent = ""
+var string lastShortEvent = ""
+bool cooldownOk = na(lastAlertBar) or bar_index - lastAlertBar >= cooldownBars
+string longEventId = marketName + "_15M_LONG_" + str.tostring(structureEventId) + "_" + longZoneId + "_" + str.tostring(time)
+string shortEventId = marketName + "_15M_SHORT_" + str.tostring(structureEventId) + "_" + shortZoneId + "_" + str.tostring(time)
+bool fireLong = barstate.isconfirmed and enableAlerts and longCandidate and cooldownOk and longEventId != lastLongEvent
+bool fireShort = barstate.isconfirmed and enableAlerts and shortCandidate and cooldownOk and shortEventId != lastShortEvent and not fireLong
+
+f_payload(string direction, string setup, string playbook, string primary, string confs, float score, float sl, float tp, string zoneId, string zoneTf, float zoneTop, float zoneBot, int touchCount, string eventId) =>
+    string side = direction == "LONG" ? "BUY" : "SELL"
+    string biasGate = playbook == "PLAYBOOK_A_HTF_OB_REACTION" ? "zone_reaction_review" : playbook == "PLAYBOOK_B_SESSION_MOMENTUM" ? "momentum_review" : "no_playbook"
+    string tradeBias = direction == "LONG" ? (structureDir == 1 ? "structure_long" : "reaction_long") : (structureDir == -1 ? "structure_short" : "reaction_short")
+    "{" +
+     "\"client_trade_id\":" + f_q(setupPrefix + "_" + eventId) + "," +
+     "\"signal_event_id\":" + f_q(eventId) + "," +
+     "\"structure_event_id\":" + str.tostring(structureEventId) + "," +
+     "\"source\":\"tradingview_v8001_dual_playbook_zone_audit\"," +
+     "\"schema_version\":\"V8001_DUAL_PLAYBOOK_ZONE_AUDIT\"," +
+     "\"pine_version\":\"V8001.0\"," +
+     "\"market\":" + f_q(marketName) + "," +
+     "\"side\":" + f_q(side) + "," +
+     "\"direction\":" + f_q(direction) + "," +
+     "\"price\":" + f_num(close) + "," +
+     "\"entry\":" + f_num(close) + "," +
+     "\"sl\":" + f_num(sl) + "," +
+     "\"tp1\":" + f_num(tp) + "," +
+     "\"risk_reward\":" + f_num(rrTarget) + "," +
+     "\"confidence\":" + f_num(score) + "," +
+     "\"technical_score\":" + f_num(score) + "," +
+     "\"trigger\":" + f_q(setup) + "," +
+     "\"setup_name\":" + f_q(setup) + "," +
+     "\"setup_family\":" + f_q(playbook == "PLAYBOOK_A_HTF_OB_REACTION" ? "OB_REACTION" : "MSS_BOS_MOMENTUM") + "," +
+     "\"playbook\":" + f_q(playbook) + "," +
+     "\"primary_trigger\":" + f_q(primary) + "," +
+     "\"confirmations_csv\":" + f_q(confs) + "," +
+     "\"timeframe\":" + f_q(timeframe.period) + "," +
+     "\"signal_timeframe\":\"15m\"," +
+     "\"bar_confirmed\":true," +
+     "\"session\":" + f_q(sessionNow) + "," +
+     "\"trade_bias\":" + f_q(tradeBias) + "," +
+     "\"bias_gate\":" + f_q(biasGate) + "," +
+     "\"htf_bias\":" + f_q(htfLayerBias) + "," +
+     "\"bias_5m\":" + f_q(bias5m) + "," +
+     "\"bias_15m\":" + f_q(bias15m) + "," +
+     "\"bias_30m\":" + f_q(bias30m) + "," +
+     "\"bias_1h\":" + f_q(bias1h) + "," +
+     "\"bias_4h\":" + f_q(bias4h) + "," +
+     "\"bias_1d\":" + f_q(bias1d) + "," +
+     "\"bias_1w\":" + f_q(bias1w) + "," +
+     "\"htf_15m_bias\":" + f_q(bias15m) + "," +
+     "\"htf_1h_bias\":" + f_q(bias1h) + "," +
+     "\"htf_4h_bias\":" + f_q(bias4h) + "," +
+     "\"entry_layer_bias\":" + f_q(entryLayerBias) + "," +
+     "\"tactical_layer_bias\":" + f_q(tacticalLayerBias) + "," +
+     "\"htf_layer_bias\":" + f_q(htfLayerBias) + "," +
+     "\"regime_bias\":" + f_q(regimeBias) + "," +
+     "\"structure_state\":" + f_q(structureState) + "," +
+     "\"internal_structure_state\":" + f_q(internalState) + "," +
+     "\"liquidity_state\":" + f_q(liquidityState) + "," +
+     "\"zone_id\":" + f_q(zoneId) + "," +
+     "\"zone_type\":" + f_q(direction == "LONG" ? "DEMAND" : "SUPPLY") + "," +
+     "\"zone_tf\":" + f_q(zoneTf) + "," +
+     "\"zone_top\":" + f_num(zoneTop) + "," +
+     "\"zone_bottom\":" + f_num(zoneBot) + "," +
+     "\"zone_touch_count\":" + str.tostring(touchCount) + "," +
+     "\"zone_first_touch\":" + f_bool(touchCount == 1) + "," +
+     "\"reaction_confirmed\":true," +
+     "\"touch_4h_demand\":" + f_bool(touch4hDemand) + "," +
+     "\"touch_4h_supply\":" + f_bool(touch4hSupply) + "," +
+     "\"touch_1d_demand\":" + f_bool(touch1dDemand) + "," +
+     "\"touch_1d_supply\":" + f_bool(touch1dSupply) + "," +
+     "\"bull_ob_first_touch\":" + f_bool(bullObFirstTouch) + "," +
+     "\"bear_ob_first_touch\":" + f_bool(bearObFirstTouch) + "," +
+     "\"bull_fvg_retest\":" + f_bool(bullFvgFirstTouch) + "," +
+     "\"bear_fvg_retest\":" + f_bool(bearFvgFirstTouch) + "," +
+     "\"bpr_touch\":" + f_bool(bprTouch) + "," +
+     "\"sweep_low\":" + f_bool(sweepLow) + "," +
+     "\"sweep_high\":" + f_bool(sweepHigh) + "," +
+     "\"mss_bull\":" + f_bool(bullishMSS or iBullMSS) + "," +
+     "\"mss_bear\":" + f_bool(bearishMSS or iBearMSS) + "," +
+     "\"bos_bull\":" + f_bool(bullishBOS or iBullBOS) + "," +
+     "\"bos_bear\":" + f_bool(bearishBOS or iBearBOS) + "," +
+     "\"vwap_state\":" + f_q(close > vwap ? "above" : close < vwap ? "below" : "at") + "," +
+     "\"ema_bias\":" + f_q(ema20 > ema50 and ema50 > ema200 ? "bullish" : ema20 < ema50 and ema50 < ema200 ? "bearish" : "neutral") + "," +
+     "\"volume_spike\":" + f_bool(volSpike) + "," +
+     "\"volume_ratio\":" + f_num(relVolume) + "," +
+     "\"entry_candle_range_atr\":" + f_num(candleRangeAtr) + "," +
+     "\"entry_candle_body_atr\":" + f_num(bodyAtr) + "," +
+     "\"distance_to_vwap_atr\":" + f_num(atr > 0 ? math.abs(close - vwap) / atr : na) + "," +
+     "\"distance_to_ema_atr\":" + f_num(atr > 0 ? math.abs(close - ema20) / atr : na) + "," +
+     "\"is_fresh\":true," +
+     "\"is_late_entry\":" + f_bool(chaseBlocked) + "," +
+     "\"is_chase\":" + f_bool(chaseBlocked) +
+     "}"
+
+if fireLong
+    alert(f_payload("LONG", longSetup, longPlaybook, longPrimary, longConf, longScore, longSL, longTP, longZoneId, longZoneTf, longZoneTop, longZoneBot, longTouchCount, longEventId), alert.freq_once_per_bar_close)
+    lastAlertBar := bar_index
+    lastLongEvent := longEventId
+
+if fireShort
+    alert(f_payload("SHORT", shortSetup, shortPlaybook, shortPrimary, shortConf, shortScore, shortSL, shortTP, shortZoneId, shortZoneTf, shortZoneTop, shortZoneBot, shortTouchCount, shortEventId), alert.freq_once_per_bar_close)
+    lastAlertBar := bar_index
+    lastShortEvent := shortEventId
+
+// ------------------------- Visuals -------------------------
+plot(showEMAs ? ema20 : na, "EMA20", color=color.new(color.aqua, 0))
+plot(showEMAs ? ema50 : na, "EMA50", color=color.new(color.orange, 0))
+plot(showEMAs ? ema200 : na, "EMA200", color=color.new(color.red, 0), linewidth=2)
+plot(showVWAP ? vwap : na, "VWAP", color=color.new(color.blue, 0), linewidth=2)
+
+plot(showHTFZones ? d4Top : na, "4H Demand Top", color=color.new(color.green, 45), style=plot.style_linebr)
+plot(showHTFZones ? d4Bot : na, "4H Demand Bottom", color=color.new(color.green, 65), style=plot.style_linebr)
+plot(showHTFZones ? s4Top : na, "4H Supply Top", color=color.new(color.red, 45), style=plot.style_linebr)
+plot(showHTFZones ? s4Bot : na, "4H Supply Bottom", color=color.new(color.red, 65), style=plot.style_linebr)
+plot(showHTFZones ? d1Top : na, "1D Demand Top", color=color.new(color.lime, 50), style=plot.style_linebr, linewidth=2)
+plot(showHTFZones ? d1Bot : na, "1D Demand Bottom", color=color.new(color.lime, 70), style=plot.style_linebr, linewidth=2)
+plot(showHTFZones ? s1Top : na, "1D Supply Top", color=color.new(color.maroon, 50), style=plot.style_linebr, linewidth=2)
+plot(showHTFZones ? s1Bot : na, "1D Supply Bottom", color=color.new(color.maroon, 70), style=plot.style_linebr, linewidth=2)
+
+// V8001.1 compact structure markers – visual only
+plotshape(showStructure and bullishMSS, title="MSS Bull", style=shape.labelup, text="MSS", color=color.new(color.white, 100), textcolor=color.fuchsia, size=size.tiny, location=location.belowbar)
+plotshape(showStructure and bearishMSS, title="MSS Bear", style=shape.labeldown, text="MSS", color=color.new(color.white, 100), textcolor=color.fuchsia, size=size.tiny, location=location.abovebar)
+plotshape(showStructure and bullishBOS, title="BOS Bull", style=shape.labelup, text="BOS", color=color.new(color.white, 100), textcolor=color.lime, size=size.tiny, location=location.belowbar)
+plotshape(showStructure and bearishBOS, title="BOS Bear", style=shape.labeldown, text="BOS", color=color.new(color.white, 100), textcolor=color.red, size=size.tiny, location=location.abovebar)
+plotshape(fireLong, title="V8001 Long", style=shape.triangleup, color=color.new(color.lime, 0), size=size.small, location=location.belowbar)
+plotshape(fireShort, title="V8001 Short", style=shape.triangledown, color=color.new(color.red, 0), size=size.small, location=location.abovebar)
+
+var table dash = table.new(position.bottom_right, 2, 10, border_width=1)
+if showDashboard and barstate.islast
+    table.cell(dash, 0, 0, "V8001", bgcolor=color.new(color.blue, 20), text_color=color.white)
+    table.cell(dash, 1, 0, chartIs15m ? "15m READY" : "CHART NICHT 15m", bgcolor=chartIs15m ? color.new(color.green, 30) : color.new(color.red, 20), text_color=color.white)
+    table.cell(dash, 0, 1, "5/15 Bias")
+    table.cell(dash, 1, 1, entryLayerBias)
+    table.cell(dash, 0, 2, "30/1H Bias")
+    table.cell(dash, 1, 2, tacticalLayerBias)
+    table.cell(dash, 0, 3, "4H/1D Bias")
+    table.cell(dash, 1, 3, htfLayerBias)
+    table.cell(dash, 0, 4, "1W Regime")
+    table.cell(dash, 1, 4, regimeBias)
+    table.cell(dash, 0, 5, "Long Score")
+    table.cell(dash, 1, 5, str.tostring(longScore, "#.0"))
+    table.cell(dash, 0, 6, "Short Score")
+    table.cell(dash, 1, 6, str.tostring(shortScore, "#.0"))
+    table.cell(dash, 0, 7, "Long PB")
+    table.cell(dash, 1, 7, longPlaybook)
+    table.cell(dash, 0, 8, "Short PB")
+    table.cell(dash, 1, 8, shortPlaybook)
+    table.cell(dash, 0, 9, "Alerts")
+    table.cell(dash, 1, 9, enableAlerts ? "ON / BAR CLOSE" : "OFF")
